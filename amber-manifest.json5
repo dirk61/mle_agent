@@ -1,0 +1,37 @@
+{
+  manifest_version: "0.1.0",
+
+  config_schema: {
+    type: "object",
+    properties: {},
+    required: [],
+    additionalProperties: false,
+  },
+
+  // External services this agent uses
+  slots: {
+    proxy: { kind: "a2a", optional: true },
+  },
+
+  // Runtime configuration
+  program: {
+    image: "ghcr.io/dirk61/mle_agent:latest",
+    entrypoint: "uv run python src/server.py --host 0.0.0.0 --port 9010",
+
+    env: {},
+
+    network: {
+      endpoints: [
+        { name: "a2a_endpoint", port: 9010 },
+      ],
+    },
+  },
+
+  // Capabilities provided by this agent
+  provides: {
+    a2a: { kind: "a2a", endpoint: "a2a_endpoint" },
+  },
+
+  // Capabilities exposed to the scenario
+  exports: { a2a: "a2a" },
+}
