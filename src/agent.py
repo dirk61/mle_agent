@@ -36,6 +36,7 @@ class Agent:
         has_file = any(isinstance(p.root, FilePart) for p in message.parts)
         if not has_file:
             validation_text = get_message_text(message)
+            print(f"[VALIDATION RESULT] {validation_text}", flush=True)
             await updater.update_status(
                 TaskState.working,
                 new_agent_text_message(f"Validation response received: {validation_text}")

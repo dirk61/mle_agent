@@ -12,3 +12,9 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Agent Memory Files
+progress.txt
+todo.md
+CLAUDE.md
+spec.md
