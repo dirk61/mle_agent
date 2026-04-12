@@ -1,7 +1,7 @@
 [project]
-name = "agent-template"
+name = "mle_agent"
 version = "0.1.0"
-description = "A template for A2A agents"
+description = "MLE-Bench purple agent for AgentBeats"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
