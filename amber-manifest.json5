@@ -24,7 +24,9 @@
       "9010"
     ],
 
-    env: {},
+    env: {
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}",
+    },
 
     network: {
       endpoints: [
