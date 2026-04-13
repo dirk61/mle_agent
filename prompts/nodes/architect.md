@@ -32,11 +32,11 @@ You are the lead ML architect. Your blueprint determines what downstream nodes c
 - `edit_file_chunk` — revise specific sections on re-entry
 
 ## Hardware discovery
-During data discovery, also check compute resources and fill the **Hardware** field in `ml_rules.md`:
-- Run `uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"` to detect GPU
-- If torch is not installed, note GPU as "unknown — install torch to detect". Model_Engineer will handle it.
+During data discovery, check compute resources and fill the **Hardware** field in `ml_rules.md`:
+- Run `nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo "no GPU"` — works without torch installed, authoritative GPU check
 - Run `nproc` for CPU count and `free -h` for RAM
-- Choose model family accordingly: GPU available → deep learning is viable; CPU-only → prefer tree-based models (XGBoost, LightGBM)
+- Choose model family accordingly: GPU found → deep learning is viable; no GPU → prefer tree-based models (XGBoost, LightGBM)
+- **Never use `torch.cuda.is_available()` for GPU detection** — torch may not be installed yet, always returning False regardless of hardware. Use `nvidia-smi` first.
 
 ## Guard rails
 - Do not write training or feature engineering code in this phase
