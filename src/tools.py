@@ -95,7 +95,19 @@ def run_bash_with_truncation(
 
 
 def _persist_bash_output(workspace_dir: str, command: str, output: str, exit_code: int) -> None:
-    """Append command output to logs/bash_history.log for cross-session persistence."""
+    """Append command output to logs/bash_history.log for cross-session persistence.
+
+    Only logs commands that run Python scripts or failed commands — skips
+    trivial shell commands (ls, pwd, git, wc, head, cat, etc.) to keep
+    the log focused on training/processing output.
+    """
+    # Skip trivial commands — only persist script runs and errors
+    cmd_start = command.strip().split()[0] if command.strip() else ""
+    is_script_run = "python" in command or ".py" in command
+    is_error = exit_code != 0
+    if not is_script_run and not is_error:
+        return
+
     try:
         log_dir = os.path.join(workspace_dir, "logs")
         os.makedirs(log_dir, exist_ok=True)
