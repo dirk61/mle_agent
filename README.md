@@ -21,6 +21,8 @@ mle_bench leaderboard https://agentbeats.dev/agentbeater/mle-bench
 | denoising-dirty-documents | Image to Image | 0.013 | 0.018 | Gold 🥇 |
 | mlsp-2013-birds | Audio Classification | 0.875 | 0.935 | Bronze 🥉 |
 | aerial-cactus-identification | Image Classification | 0.99995 | 1.000 | Above median |
+| jigsaw-toxic-comment-classification-challenge | Text Classification | 0.981 | 0.987 | Above median |
+
 
 Benchmarking **STILL ONGOING** on ML competitions across categories.
 

@@ -38,7 +38,7 @@ DEFAULT_RECURSION_LIMIT = 35
 
 # Wall-clock timeout for the entire graph run (seconds).
 # Safety net — prevents unbounded token burn on external platforms.
-# Ideal ~1hr, typical ~1.5hr, hard cap 2hr. Only triggers in edge cases.
+# Ideal ~2hr, typical ~3hr, hard cap 4hr. Only triggers in edge cases.
 GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 14400))
 
 # Maximum Router transitions before forcing END.
