@@ -499,7 +499,7 @@ def _bootstrap_workspace(staging_path: str) -> str:
         if k not in ("VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV")
     }
     subprocess.run(
-        ["uv", "init", "--python", "3.13"],
+        ["uv", "init", "--python", "3.12"],
         cwd=workspace_dir,
         capture_output=True,
         text=True,
