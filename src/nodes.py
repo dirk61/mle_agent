@@ -33,6 +33,12 @@ from src.tools import TOOL_SCHEMAS
 # Maximum tool-call rounds per Action Node invocation
 DEFAULT_RECURSION_LIMIT = 50
 
+# Wall-clock timeout for the entire graph run (seconds).
+# Safety net — prevents unbounded token burn on external platforms.
+# Normal runs finish well under this. Only triggers in edge cases.
+# Default ~100 min — generous for complex competitions, still caps runaway.
+GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 6000))
+
 # Maximum Router transitions before forcing END.
 # Happy path = ~5 cycles. 15 allows 2-3 rewinds within a ~1 hr budget.
 MAX_ITERATIONS = 15
@@ -51,6 +57,33 @@ _PHASE_MAP: dict[str, str] = {
     "Evaluator": "evaluation",
     "END": "END",
 }
+
+
+# ── Wall-Clock Safety Net ────────────────────────────────────────────────
+
+_GRAPH_START_KEY = "_MLE_AGENT_GRAPH_START"
+
+
+def _init_wall_clock() -> None:
+    """Set the graph start time (once, on first call)."""
+    if _GRAPH_START_KEY not in os.environ:
+        os.environ[_GRAPH_START_KEY] = str(time.time())
+
+
+def _elapsed_min() -> float:
+    """Minutes elapsed since graph start."""
+    start = os.environ.get(_GRAPH_START_KEY)
+    if not start:
+        return 0.0
+    return (time.time() - float(start)) / 60.0
+
+
+def _wall_clock_exceeded() -> bool:
+    """Check if the total graph run has exceeded GRAPH_WALL_CLOCK_TIMEOUT."""
+    start = os.environ.get(_GRAPH_START_KEY)
+    if not start:
+        return False
+    return (time.time() - float(start)) > GRAPH_WALL_CLOCK_TIMEOUT
 
 
 # ── Message Helpers ──────────────────────────────────────────────────────
@@ -112,9 +145,20 @@ def _run_react_loop(
     system = assemble_system_prompt(node_name, workspace_dir=workspace_dir)
     handoff_message = ""
     tool_rounds = 0
-    log.info("[%s] Starting ReAct loop (tier=%s)", node_name, tier)
+    # Track wall-clock start for the entire graph (shared via env marker)
+    _init_wall_clock()
+    log.info("[%s] Starting ReAct loop (tier=%s) [%.1f min elapsed]", node_name, tier, _elapsed_min())
 
     while tool_rounds < recursion_limit:
+        # Safety net: abort if total graph time exceeds wall-clock timeout
+        if _wall_clock_exceeded():
+            handoff_message = (
+                f"[{node_name}] Wall-clock timeout ({GRAPH_WALL_CLOCK_TIMEOUT}s) exceeded. "
+                "Yielding to Router to wrap up."
+            )
+            log.warning(handoff_message)
+            break
+
         response = call_llm(
             tier=tier,
             system=system,
@@ -127,10 +171,18 @@ def _run_react_loop(
 
         if response.stop_reason == "tool_use":
             tool_names = [b["name"] for b in assistant_msg["content"] if b.get("type") == "tool_use"]
-            log.info("[%s] Tool round %d: %s", node_name, tool_rounds + 1, tool_names)
+            log.info(
+                "[%s] Tool round %d/%d: %s [%.1f min]",
+                node_name, tool_rounds + 1, recursion_limit, tool_names, _elapsed_min(),
+            )
             tool_result_msg, micro_tasks = dispatch_tool_calls(
                 assistant_msg, workspace_dir, micro_tasks
             )
+            # Log brief preview of tool results
+            for block in tool_result_msg.get("content", []):
+                if isinstance(block, dict) and "content" in block:
+                    preview = str(block["content"])[:150].replace("\n", " ")
+                    log.info("[%s]   -> %s", node_name, preview)
             messages.append(tool_result_msg)
             tool_rounds += 1
             continue
@@ -145,7 +197,10 @@ def _run_react_loop(
 
         # end_turn or other — LLM is done
         handoff_message = _extract_text(response)
-        log.info("[%s] Done after %d tool rounds. Handoff: %.100s...", node_name, tool_rounds, handoff_message)
+        log.info(
+            "[%s] Done after %d tool rounds [%.1f min]. Handoff: %.120s...",
+            node_name, tool_rounds, _elapsed_min(), handoff_message,
+        )
         break
     else:
         # Recursion limit hit
@@ -341,7 +396,11 @@ def router_brain_node(state: AgentState) -> dict:
         "iteration_count": iteration_count,
     }
 
-    log.info("[Router] Iteration %d | Phase: %s", iteration_count, current_phase)
+    _init_wall_clock()
+    log.info(
+        "[Router] Iteration %d/%d | Phase: %s [%.1f min elapsed]",
+        iteration_count, MAX_ITERATIONS, current_phase, _elapsed_min(),
+    )
 
     # Safety circuit breaker
     if iteration_count > MAX_ITERATIONS:
@@ -396,7 +455,7 @@ def router_brain_node(state: AgentState) -> dict:
         "handoff_message": new_handoff,
     })
 
-    log.info("[Router] -> %s (tier=%s, phase=%s)", next_node, tier, new_phase)
+    log.info("[Router] -> %s (tier=%s, phase=%s) [%.1f min]", next_node, tier, new_phase, _elapsed_min())
     return state_update
 
 
