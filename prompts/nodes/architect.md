@@ -25,6 +25,13 @@ You are the lead ML architect. Your blueprint determines what downstream nodes c
 - `write_file` — create `ml_rules.md`, `ml_spec.md`, `ml_todo.md`
 - `edit_file_chunk` — revise specific sections on re-entry
 
+## Hardware discovery
+During data discovery, also check compute resources and fill the **Hardware** field in `ml_rules.md`:
+- Run `uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"` to detect GPU
+- If torch is not installed, note GPU as "unknown — install torch to detect". Model_Engineer will handle it.
+- Run `nproc` for CPU count and `free -h` for RAM
+- Choose model family accordingly: GPU available → deep learning is viable; CPU-only → prefer tree-based models (XGBoost, LightGBM)
+
 ## Guard rails
 - Do not write training or feature engineering code in this phase
 - Every `ml_todo.md` task requiring architectural context must cite the relevant `ml_spec.md` section

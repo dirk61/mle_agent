@@ -12,6 +12,7 @@ See spec_state.md Node Definitions for authoritative definitions.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -19,6 +20,8 @@ import subprocess
 import time
 
 from src.llm import MODEL_MAP, call_llm
+
+log = logging.getLogger("mle_agent")
 from src.medal_thresholds import get_medal_thresholds
 from src.prompts import assemble_router_input, assemble_system_prompt
 from src.state import AgentState
@@ -108,6 +111,7 @@ def _run_react_loop(
     system = assemble_system_prompt(node_name, workspace_dir=workspace_dir)
     handoff_message = ""
     tool_rounds = 0
+    log.info("[%s] Starting ReAct loop (tier=%s)", node_name, tier)
 
     while tool_rounds < recursion_limit:
         response = call_llm(
@@ -121,6 +125,8 @@ def _run_react_loop(
         messages.append(assistant_msg)
 
         if response.stop_reason == "tool_use":
+            tool_names = [b["name"] for b in assistant_msg["content"] if b.get("type") == "tool_use"]
+            log.info("[%s] Tool round %d: %s", node_name, tool_rounds + 1, tool_names)
             tool_result_msg, micro_tasks = dispatch_tool_calls(
                 assistant_msg, workspace_dir, micro_tasks
             )
@@ -138,6 +144,7 @@ def _run_react_loop(
 
         # end_turn or other — LLM is done
         handoff_message = _extract_text(response)
+        log.info("[%s] Done after %d tool rounds. Handoff: %.100s...", node_name, tool_rounds, handoff_message)
         break
     else:
         # Recursion limit hit
@@ -329,6 +336,8 @@ def router_brain_node(state: AgentState) -> dict:
         "iteration_count": iteration_count,
     }
 
+    log.info("[Router] Iteration %d | Phase: %s", iteration_count, current_phase)
+
     # Safety circuit breaker
     if iteration_count > MAX_ITERATIONS:
         state_update.update({
@@ -382,6 +391,7 @@ def router_brain_node(state: AgentState) -> dict:
         "handoff_message": new_handoff,
     })
 
+    log.info("[Router] -> %s (tier=%s, phase=%s)", next_node, tier, new_phase)
     return state_update
 
 

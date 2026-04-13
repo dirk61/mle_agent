@@ -17,6 +17,22 @@ if _env_file.is_file():
             _k, _, _v = _line.partition("=")
             os.environ.setdefault(_k.strip(), _v.strip())
 
+import logging
+
+# ── Logging ──────────────────────────────────────────────────────────────
+# File-based log captures everything (agent loop, LLM calls, errors)
+# for post-run diagnosis. Also streams to stderr for live monitoring.
+_LOG_PATH = os.environ.get("MLE_AGENT_LOG", "/tmp/mle_agent.log")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    handlers=[
+        logging.FileHandler(_LOG_PATH, mode="w"),
+        logging.StreamHandler(),
+    ],
+)
+logging.getLogger("mle_agent").info("Log file: %s", _LOG_PATH)
+
 import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
