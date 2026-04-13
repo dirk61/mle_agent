@@ -48,7 +48,7 @@ Defines the prompting contract for each node: the role framing, the behavioral a
 | **Router_Brain** | "You are the project manager. You read signals, not code. You decide where to send work next." | Output exactly one JSON block. Never write code. Choose Opus for architecture decisions and rewinds; Sonnet for execution. | Rationale for routing. How much context to weigh. |
 | **Data_Engineer** | "You are a rigorous data engineer. Your job is done when clean, validated, leakage-free data arrays exist on disk." | No full dataframe prints — text summaries only. Strict I/O hygiene: output paths must be explicit and stable. Defensive programming on data shapes. | What EDA to run. How to handle missing values. Feature engineering choices. Which library to use. |
 | **Model_Engineer** | "You are an ML engineer focused on signal. You inherit clean data and return trained models with logged metrics." | Log all metrics to disk. Never read raw data — consume only what Data_Engineer wrote. Optimize terminal output for signal-to-noise. | Architecture choices. Hyperparameter strategy. Which optimizer or scheduler. |
-| **Evaluator** | "You are an independent, skeptical code reviewer. You do not train models. Finding a problem IS your success." | Check test set integrity, data leakage, and Kaggle submission format compliance. If anything fails, document it in progress.txt with a `[BLOCKER]` entry. | What to look at first. How deep to go. How many checks to run. |
+| **Evaluator** | "You are an independent, skeptical code reviewer. You do not train models. Finding a problem IS your success." | Check test set integrity, data leakage, and competition submission format compliance. If anything fails, document it in progress.txt with a `[BLOCKER]` entry. | What to look at first. How deep to go. How many checks to run. |
 
 ---
 
@@ -57,23 +57,18 @@ Defines the prompting contract for each node: the role framing, the behavioral a
 Wake-Up and Sign-Off are prompt-enforced rituals. The ordering is load-bearing.
 
 ### Wake-Up (on node entry)
-```
-1. read_file(ml_progress.txt)                          ← Where did last shift end?
-2. read_file(ml_todo.md)                               ← What is the active roadmap?
-3. run_bash("git status && git log -n 5")              ← What actually changed on disk?
-```
-Git comes last so the node reads intent before reading reality — this prevents anchoring on stale state if git shows unexpected files.
+
+> Authoritative step sequence: `prompts/protocols/wake_up.md`
+
+**Rationale for the ordering:** Git comes last so the node reads intent before reading reality — this prevents anchoring on stale state if git shows unexpected files.
 
 Do **not** read `ml_spec.md` during Wake-Up unless `ml_todo.md` contains an explicit cross-reference like `Ref: ml_spec.md → Section 2.1`. Cold storage is cold for a reason: reading it adds 3–5K tokens of irrelevant context to routine execution loops.
 
 ### Sign-Off (on node exit, before yielding to Router)
-```
-1. edit_file_chunk(ml_todo.md)                         ← Mark completed items
-2. write_file(ml_progress.txt)                         ← Overwrite with current state
-3. run_bash("git add <files> && git commit -m '...'")  ← Commit completed work
-4. Emit handoff_message                                ← One sentence for Router
-```
-The commit happens at Sign-Off, not at task completion. Each commit in the log should represent a completed node shift.
+
+> Authoritative step sequence: `prompts/protocols/sign_off.md`
+
+**Rationale:** The commit happens at Sign-Off, not at task completion. Each commit in the log should represent a completed node shift.
 
 ---
 
@@ -81,12 +76,14 @@ The commit happens at Sign-Off, not at task completion. Each commit in the log s
 
 Router_Brain operates on Haiku — small context, fast, reliable on structured output. Its input must be structured; its output must be parseable without interpretation.
 
-### Input block (assembled by the harness before calling Router):
+### Input block (assembled by the Router node function before calling Haiku):
 ```
 CURRENT_PHASE: <phase_name>
+HANDOFF_MESSAGE: <content of state.handoff_message from the exiting node>
 PROGRESS_EXCERPT:
 <last 20 lines of ml_progress.txt>
 AVAILABLE_NODES: System_Architect | Data_Engineer | Model_Engineer | Evaluator | END
+ITERATION_COUNT: <current iteration count>
 ```
 
 ### Required output (one JSON block, nothing else):
@@ -143,4 +140,26 @@ mle_agent/prompts/
     ml_rules_template.md  ← Starter template for competition-specific ml_rules.md
 ```
 
-Compose node prompts in code as: `static_base + "\n\n" + ml_rules_content`. The static base comes from `prompts/nodes/<node>.md`; the dynamic content is read from the active `ml_rules.md` at loop start.
+Compose Action Node prompts by concatenating the static base, protocol snippets, and `ml_rules.md` content. See **Implementation Note for Claude Code** below for the exact assembly formula.
+
+---
+
+## Implementation Note for Claude Code
+
+When building the prompt assembly code in `src/agent.py`:
+
+1. **Protocol embedding**: Read the contents of `prompts/protocols/wake_up.md` and `prompts/protocols/sign_off.md` at startup. Concatenate them into each Action Node's system prompt string. The phrase "embed this block verbatim" in the protocol files means literal string concatenation, not a file path reference the LLM should follow at runtime.
+
+2. **Prompt assembly formula for Action Nodes** (Data_Engineer, Model_Engineer, Evaluator):
+   ```
+   system_prompt = (
+       read("prompts/nodes/<node>.md")
+       + "\n\n" + read("prompts/protocols/wake_up.md")
+       + "\n\n" + read("prompts/protocols/sign_off.md")
+       + "\n\n" + read("<workspace>/ml_rules.md")  # dynamic, per-competition
+   )
+   ```
+
+3. **System_Architect**: Uses the full assembly formula (like other Action Nodes). On first entry, `ml_rules.md` does not exist yet — the static base alone is sufficient for bootstrap. On re-entry (rewind from Router), the protocols ensure it reads current state before revising the blueprint.
+
+4. **Router_Brain**: Uses only `prompts/nodes/router.md` as the system prompt. The user message is the harness-assembled input block (CURRENT_PHASE, HANDOFF_MESSAGE, PROGRESS_EXCERPT, AVAILABLE_NODES, ITERATION_COUNT). No protocol snippets, no `ml_rules.md`.

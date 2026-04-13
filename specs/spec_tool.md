@@ -13,11 +13,11 @@ The core philosophy of this toolset is **Context Preservation and Fault Toleranc
 * **Parameters:**
     * `command` (string): The shell command to execute.
     * `timeout_seconds` (int, default=120): Maximum execution time before force-killing the process. Longer for hard tasks such as model training.
-* **Execution Behavior:** Runs in the active workspace directory and captures both `stdout` and `stderr`. 
+* **Execution Behavior:** Runs in the active competition workspace directory (see `spec_memory.md` §0 for workspace isolation and path conventions) and captures both `stdout` and `stderr`. 
 * **Failure & Error Handling:** * If combined output exceeds 8,000 characters, it dynamically truncates by returning the first 2,000 chars, a string `\n...[OUTPUT TRUNCATED]...\n`, and the final 2,000 chars (crucial for stack traces).
     * Returns explicit exit codes. If `exit_code != 0`, prefixes the output with `[ERROR: Command failed]`.
     * Kills any interactive shell attempts (e.g., `vim`, `nano`, bare `python`).
-* **Usage Constraints:** enforce `-m` to bypass interactive prompts.
+* **Usage Constraints:** Use `uv run python <script.py>` (not bare `python`) to execute scripts inside the workspace's isolated environment. Enforce `-m` on git and other tools to bypass interactive prompts.
 
 ---
 

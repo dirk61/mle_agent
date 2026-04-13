@@ -1,6 +1,6 @@
 # Technical Specification — MLE Agent (`spec.md`)
 
-> **Cold Storage.** Do not read during routine coding. Only read when explicitly cross-referenced by `ml_todo.md`, or when architecting a new phase. See CLAUDE.md §9 for the full protocol.
+> **Cold Storage.** Do not read during routine coding. Only read when explicitly cross-referenced by `todo.md`, or when architecting a new phase. See CLAUDE.md §9 for the full protocol.
 
 ---
 
@@ -25,7 +25,7 @@ Green Agent ──▶ System_Architect ──▶ Router_Brain ──┬──▶
                               Universal_ToolNode ◀── all Action Nodes ◀──┘
 
 Shared file layer: ml_rules.md · ml_spec.md · ml_todo.md · ml_progress.txt
-Runtime state:     LangGraph State { messages · handoff_message · current_phase · target_model }
+Runtime state:     LangGraph State { messages · all_messages · handoff_message · current_phase · target_model · iteration_count }
 ```
 
 ---
@@ -41,7 +41,7 @@ Five nodes. Three tiers.
 | `Router_Brain` | Haiku | Wipes context, reads signals, dispatches next node + model tier |
 | `Data_Engineer` | Sonnet | EDA, feature engineering, produces clean arrays on disk |
 | `Model_Engineer` | Sonnet (Opus on rewind) | Training, inference, metric logging |
-| `Evaluator` | Sonnet | Independent QA — format, leakage, validation score |
+| `Evaluator` | Sonnet | Independent QA — format, leakage, validation score; always routes to Router |
 | `Universal_ToolNode` | — | Non-LLM executor; returns results back to calling node |
 
 → Full node definitions, edge rules, and dry-run trace: **`spec_state.md`**
@@ -73,7 +73,7 @@ Two layers working together:
 
 **Protocols:** Wake-Up (read trackers → read git) and Sign-Off (mark done → overwrite progress → commit → emit handoff) are enforced on every Action Node entry and exit.
 
-→ Full memory architecture and operating rules: **`spec_memory.md`**
+→ Full memory architecture, workspace isolation, and operating rules: **`spec_memory.md`**. Protocol step sequences: **`prompts/protocols/`**.
 
 ### Prompting
 Prompts assembled at runtime as `static_base + ml_rules_content`. Layer 1 (static, in `prompts/nodes/`) defines node character. Layer 2 (dynamic, from `ml_rules.md`) encodes the current competition.
@@ -86,8 +86,9 @@ Router input is a structured harness-assembled block; output is exactly one JSON
 
 ## Key Invariants
 
-1. Router always wipes `messages` — no cross-node history bleed.
+1. Router appends `messages` to `all_messages` before wiping — the full trace is always recoverable for post-run LLM-as-a-judge evaluation.
 2. `ml_spec.md` is cold — a `ml_todo.md` cross-reference is the only read unlock.
 3. `edit_file_chunk` for existing pipelines — never overwrite established scripts with `write_file`.
 4. Blockers are typed — free-text fails under Haiku.
 5. Commit on every Sign-Off — recovery always starts from a stable state.
+6. Each competition runs in an isolated workspace — see `spec_memory.md` §0.

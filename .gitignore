@@ -14,5 +14,5 @@ wheels/
 .venv
 
 # Agent Memory Files
-progress.txt
-todo.md
+# progress.txt
+# todo.md

@@ -17,6 +17,8 @@
 
 ## I/O Paths
 
+> All paths below are relative to the competition workspace root. See `specs/spec_memory.md` §0 for the workspace bootstrap and path convention.
+
 | Artifact | Path |
 |---|---|
 | Raw train data | `<path/to/train.csv or .parquet>` |
@@ -58,9 +60,28 @@ All nodes must read and write to exactly these paths. Do not invent new paths.
 
 ---
 
-## Active Phase
+## Ethics & First Principles
 
-**Current phase:** <Architecture | DataEngineering | ModelEngineering | Evaluation>
-**Active node:** <System_Architect | Data_Engineer | Model_Engineer | Evaluator>
+- **No solution lookup.** Do not search the internet for competition solutions, kernels, discussion threads, or leaderboard strategies. Treat every problem from first principles using the data provided.
+- **Standard open-source and dataset licensing.** Use only permissively licensed libraries. Do not redistribute raw competition data outside the workspace.
 
-> Update this section when System_Architect writes ml_rules.md, and again whenever Router transitions phases. This gives every node immediate awareness of where the project stands without reading ml_progress.txt.
+---
+
+## Version Control
+
+All git operations run inside this competition workspace (initialized during bootstrap).
+
+- **Commit on every Sign-Off** — each commit represents a completed node shift, not incremental saves.
+- **Stage only relevant files** — never stage raw data files, model binaries larger than necessary, or temporary scripts.
+- **Descriptive commit messages** in imperative mood: "Add feature engineering pipeline", not "Added..."
+- **Never auto-push** — this workspace is local only.
+
+---
+
+## Dependency Management
+This workspace uses `uv` for isolated dependency management. All commands run inside this workspace's own virtual environment.
+
+- **Install packages** with `uv add <package>` — this updates `pyproject.toml` and `uv.lock` automatically.
+- **Run scripts** with `uv run python <script.py>` to execute inside the isolated environment.
+- **Never install globally** — do not use bare `pip install` or modify any environment outside this workspace.
+

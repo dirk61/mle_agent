@@ -1,0 +1,4 @@
+Current Objective: Build the mle_agent LangGraph implementation from specs
+Current State: READY — all specs and prompts are finalized, todo.md is populated
+Blockers: None
+Next Steps: Start Phase 1 of todo.md — add langgraph/anthropic deps and define State TypedDict (Ref: spec_state.md §3)

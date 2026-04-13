@@ -27,16 +27,19 @@ Do not modify files outside this root. Update this section if the structure chan
 * `Dockerfile`: Edit ONLY for base image or system deps.
 * `pyproject.toml` / `uv.lock`: See Section 7 for strict dependency rules.
 * `amber-manifest.json5`: Edit ONLY for image tag or env changes.
-* `specs/`: Design specifications (cold storage — read on demand, not routinely).
-  * `spec_state.md`: LangGraph node definitions and context protocols.
-  * `spec_tool.md`: Tool definitions and usage constraints.
-  * `spec_memory.md`: Macro- and micro-memory architecture.
-  * `spec_LLM.md`: Model tier assignments.
-  * `spec_prompting.md`: Prompting architecture, node contracts, Router interface.
+* `specs/`: Design specifications. Read each spec **once** when implementing its module, then treat as cold storage (see §9 READ LIMITS).
+  * `spec.md`: Master overview and key invariants. Read first for the big picture.
+  * `spec_memory.md`: Workspace isolation, macro/micro-memory, operating rules. Read when implementing workspace bootstrap and memory management.
+  * `spec_state.md`: LangGraph node definitions, State schema, edge rules. Read when implementing the state graph and node logic.
+  * `spec_tool.md`: Tool definitions and usage constraints. Read when implementing Universal_ToolNode.
+  * `spec_LLM.md`: Model tier assignments. Read when implementing LLM dispatch.
+  * `spec_prompting.md`: Prompting architecture, node contracts, Router interface, **prompt assembly formula**. Read when implementing prompt loading and node initialization.
 * `prompts/`: Pre-written prompt bases — do not edit during a competition run.
   * `nodes/`: Static system prompt base for each node (`architect`, `router`, `data_engineer`, `model_engineer`, `evaluator`).
-  * `protocols/`: Wake-Up and Sign-Off ritual snippets (embedded in node prompts).
+  * `protocols/`: Wake-Up and Sign-Off ritual snippets (embedded verbatim into Action Node prompts at runtime).
   * `dynamic/ml_rules_template.md`: Fillable template for competition-specific `ml_rules.md`.
+
+**Competition Workspaces (Runtime):** The mle_agent creates an isolated workspace directory for each competition run — with its own `git init`, memory files, code, and data. This workspace is completely separate from this dev repository. See `specs/spec_memory.md` §0 for the bootstrap sequence and path convention.
 
 ## 5. Local Testing
 Local testing = full end-to-end assessment, not unit testing. For quick function-level checks, use plain Python scripts.
@@ -79,27 +82,46 @@ The build environment strictly relies on `uv`. All dependencies must be resolvab
 ## 9. Shift Handover Memory Protocol
 Your context window might reset between sessions. You MUST follow this protocol to maintain continuity.
 
-**The Memory Stack:**
-1. `CLAUDE.md`: The permanent rules and constraints (this file).
-2. `progress.txt`: Immediate state (Objective, Blockers, Next Steps).
-3. `todo.md`: Task checklist with cross-references to the spec.
-4. `spec.md`: Technical blueprint (Cold Storage).
+> **Two memory layers exist — do not confuse them.** The Dev Memory below is for YOU (Claude Code the developer). The Agent Memory is for the mle_agent you are building — it manages its own parallel system at runtime.
 
+### Dev Memory (YOUR files as Claude Code)
+These files track YOUR development work on building the mle_agent codebase:
+1. `CLAUDE.md`: Permanent rules and constraints (this file).
+2. `progress.txt`: Your immediate dev state (Objective, Blockers, Next Steps).
+3. `todo.md`: Your development task checklist with cross-references to specs.
+4. `specs/spec.md`: Technical blueprint (Cold Storage — read on demand).
 
+### Agent Memory (the mle_agent's runtime files)
+The mle_agent you are building has a **parallel memory system** for competition runs. These files do NOT exist in this repo — the agent creates them at runtime inside an isolated competition workspace:
+- `ml_rules.md`: Competition-specific system prompt (loaded every loop)
+- `ml_spec.md`: ML pipeline blueprint (Cold Storage)
+- `ml_todo.md`: Agent's task checklist with blueprint cross-references
+- `ml_progress.txt`: Agent's shift handover scratchpad
 
-**[WAKE-UP] - Execute immediately on new prompt:**
+The agent memory mirrors the dev memory by design (Recursive Agentic Memory). See `specs/spec_memory.md` for the full agent memory specification, workspace isolation, and operating rules.
+
+### [WAKE-UP] — Dev Layer (execute immediately on new prompt)
 * Read `progress.txt` and `todo.md`.
 * Run `git status` and `git log -n 5`.
+* Note: the mle_agent has its own Wake-Up protocol — see `prompts/protocols/wake_up.md`.
 
-**[READ LIMITS & UPDATES] - `spec.md` is Cold Storage:**
-* NEVER read `spec.md` for routine coding or debugging. 
-* ONLY read specific sections of `spec.md` if explicitly referenced by a `todo.md` item, or when architecting a brand new phase.
-* **CASCADE RULE:** If you modify `spec.md`, you MUST immediately review and update `todo.md` to ensure the task list accurately reflects the new architectural blueprint.
+### [READ LIMITS & UPDATES] — Specs are Cold Storage after initial implementation
+Spec files follow a two-phase discipline:
 
-**[SIGN-OFF] - Execute before ending your turn or asking for feedback:**
+**During initial implementation** — you ARE building the system from specs. Read each spec file **once** when implementing its corresponding module. Your `todo.md` tasks should cross-reference the specific spec (e.g., `Ref: spec_state.md → Node Definitions`), just like the agent's `ml_todo.md` cross-references `ml_spec.md`.
+
+**After the module is built** — that spec becomes cold storage:
+* NEVER re-read spec files for routine coding, debugging, or minor fixes.
+* ONLY re-read a specific spec section if explicitly referenced by a `todo.md` item, or when architecting a brand-new module.
+* The code you already wrote IS the implementation — read your code, not the spec.
+
+**CASCADE RULE:** If you modify any spec file, you MUST immediately review and update `todo.md` to ensure the task list reflects the change.
+
+### [SIGN-OFF] — Dev Layer (execute before ending your turn)
 1. **Mark Done:** Change `[ ]` to `[x]` in `todo.md` for completed work.
 2. **State Sync:** Overwrite `progress.txt` strictly using this format:
    * *Current Objective:* [...]
    * *Current State/Blockers:* [Include specific errors/tracebacks if stuck]
    * *Next Steps:* [Exact command or file the next agent should start with]
 3. **Commit:** `git commit -m` if a sub-task is complete or stable.
+* Note: the mle_agent has its own Sign-Off protocol — see `prompts/protocols/sign_off.md`.
