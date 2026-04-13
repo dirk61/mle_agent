@@ -17,7 +17,7 @@ Embed this block verbatim into any Action Node prompt that participates in the s
    If you spot a drift, fix it now — one wrong path here becomes a zero-score submission later.
 
 3. write_file("ml_progress.txt")
-   Overwrite entirely using this exact format:
+   Overwrite entirely using this format:
 
    Current Objective: <what you were working on>
    Current State: <DONE | IN_PROGRESS | BLOCKED>
@@ -27,6 +27,11 @@ Embed this block verbatim into any Action Node prompt that participates in the s
      TRACE: <last relevant traceback line or metric value>
    (Omit the Blockers section entirely if there are no blockers.)
    Next Steps: <exact file path or command the next node should start with>
+
+   Key Findings: (include this section — it helps the next node orient quickly)
+   - Important discoveries: strongest predictors, data shapes, metric values
+   - Output file paths and their dimensions
+   - Any surprises or caveats the next node should know about
 
 4. run_bash_with_truncation("git add <specific files> && git commit -m '<what changed and why>'")
    Commit only relevant files — no accidental staging of data files or secrets.
