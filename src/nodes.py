@@ -211,7 +211,7 @@ def _run_react_loop(
         if _wall_clock_exceeded():
             handoff_message = (
                 f"[{node_name}] Wall-clock timeout ({GRAPH_WALL_CLOCK_TIMEOUT}s) exceeded. "
-                "Yielding to Router to wrap up."
+                "Yielding to Router — must validate submission.csv and finalize immediately."
             )
             log.warning(handoff_message)
             break
@@ -511,15 +511,28 @@ def router_brain_node(state: AgentState) -> dict:
         iteration_count, MAX_ITERATIONS, current_phase, _elapsed_min(),
     )
 
-    # Safety circuit breaker
+    # Safety circuit breaker — route to Evaluator first (to validate
+    # submission), then END on the next iteration.
     if iteration_count > MAX_ITERATIONS:
-        state_update.update({
-            "current_phase": "END",
-            "target_model": "sonnet",
-            "handoff_message": (
-                f"Iteration budget ({MAX_ITERATIONS}) exceeded. Routing to END."
-            ),
-        })
+        if current_phase != "evaluation":
+            # Haven't evaluated yet — give Evaluator one last chance
+            state_update.update({
+                "current_phase": "evaluation",
+                "target_model": "sonnet",
+                "handoff_message": (
+                    f"Iteration budget ({MAX_ITERATIONS}) exceeded. "
+                    "Validate submission.csv and finalize — this is the last pass."
+                ),
+            })
+        else:
+            # Already evaluated — go to END
+            state_update.update({
+                "current_phase": "END",
+                "target_model": "sonnet",
+                "handoff_message": (
+                    f"Iteration budget ({MAX_ITERATIONS}) exceeded. Routing to END."
+                ),
+            })
         return state_update
 
     # Assemble Router input block
