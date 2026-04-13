@@ -28,7 +28,7 @@ Embed this block verbatim into any Action Node prompt that participates in the s
    (Omit the Blockers section entirely if there are no blockers.)
    Next Steps: <exact file path or command the next node should start with>
 
-4. run_bash("git add <specific files> && git commit -m '<what changed and why>'")
+4. run_bash_with_truncation("git add <specific files> && git commit -m '<what changed and why>'")
    Commit only relevant files — no accidental staging of data files or secrets.
    Write the commit message in imperative mood: "Add feature engineering pipeline", not "Added..."
 

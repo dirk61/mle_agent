@@ -17,7 +17,7 @@
 
 ## I/O Paths
 
-> All paths below are relative to the competition workspace root. See `specs/spec_memory.md` §0 for the workspace bootstrap and path convention.
+> All paths below are relative to the competition workspace root.
 
 | Artifact | Path |
 |---|---|
@@ -55,8 +55,9 @@ All nodes must read and write to exactly these paths. Do not invent new paths.
 
 - <Any competition-specific rule, e.g. "External data not permitted">
 - <Any known data quirks, e.g. "Target column has 3% missing values in train; treat as negative class">
-- <Hardware constraint if relevant, e.g. "GPU available at /dev/cuda:0; use it for training">
-- <Time constraint if relevant, e.g. "Total wall-clock budget: 4 hours">
+- **Hardware:** <GPU availability, e.g. "GPU at /dev/cuda:0" or "CPU only">
+- **Storage:** <Available disk, e.g. "~10 GB workspace disk — check `df -h .` before downloading large models or caching datasets. Clean up temp files after use.">
+- **Time budget:** <Wall-clock limit, e.g. "4 hours total" or "no hard limit">
 
 ---
 
@@ -85,6 +86,9 @@ This workspace uses `uv` for isolated dependency management. All commands run in
 - **Run scripts** with `uv run python <script.py>` to execute inside the isolated environment.
 - **Never install globally** — do not use bare `pip install` or modify any environment outside this workspace.
 
-## [MANDATORY VERIFICATION] - Toy Data Testing:**
-After finishing or editing any new phase, function, or submodule, you **MUST** write and execute a temporary Python script using minimal dummy data. You must verify dimensional correctness, data types, and logic *before* moving on.
+---
+
+## Verification
+
+After finishing or editing any pipeline script, you **MUST** run it and verify the output before moving on. Check: shapes match expectations, dtypes are correct, no NaN where there shouldn't be, output files exist at the expected paths. Do not mark a task complete on code alone — run it.
 

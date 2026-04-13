@@ -15,7 +15,7 @@ Execute these steps in order — sequence matters:
 2. read_file("ml_todo.md")
    Understand the active roadmap. Identify which tasks are yours in the current phase.
 
-3. run_bash("git status && git log -n 5")
+3. run_bash_with_truncation("git status && git log -n 5")
    Ground yourself in what actually exists on disk. If git shows unexpected files or uncommitted changes,
    investigate before proceeding — do not assume the previous state is clean.
 ```
