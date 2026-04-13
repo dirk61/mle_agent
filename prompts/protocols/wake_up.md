@@ -9,13 +9,16 @@ Embed this block verbatim into any Action Node prompt that participates in the s
 Execute these steps in order — sequence matters:
 
 ```
-1. read_file("ml_progress.txt")
+1. run_bash_with_truncation("pwd && ls -la")
+   Orient yourself: confirm your working directory and see what files exist.
+
+2. read_file("ml_progress.txt")
    Understand where the last shift ended: what was the objective, what blocked it, what the next step was.
 
-2. read_file("ml_todo.md")
+3. read_file("ml_todo.md")
    Understand the active roadmap. Identify which tasks are yours in the current phase.
 
-3. run_bash_with_truncation("git status && git log -n 5")
+4. run_bash_with_truncation("git status && git log -n 5 --oneline")
    Ground yourself in what actually exists on disk. If git shows unexpected files or uncommitted changes,
    investigate before proceeding — do not assume the previous state is clean.
 ```

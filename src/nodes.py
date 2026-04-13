@@ -356,6 +356,15 @@ def _bootstrap_workspace(staging_path: str) -> str:
     for subdir in ("data/raw", "data/processed", "src", "models", "logs"):
         os.makedirs(os.path.join(workspace_dir, subdir), exist_ok=True)
 
+    # Symlink project prompts into workspace so read_file("prompts/...") works.
+    # Resolves the path mismatch between workspace (/tmp/...) and project root.
+    project_prompts = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prompts"
+    )
+    workspace_prompts = os.path.join(workspace_dir, "prompts")
+    if os.path.isdir(project_prompts) and not os.path.exists(workspace_prompts):
+        os.symlink(project_prompts, workspace_prompts)
+
     # git init + set user config (required in containers with no global git config)
     subprocess.run(["git", "init"], cwd=workspace_dir, capture_output=True, check=False)
     subprocess.run(
