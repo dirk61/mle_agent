@@ -62,63 +62,19 @@ We evaluated across a diverse set of competitions spanning differnt categories a
 | **Model_Engineer** | Sonnet | Model training, CV-guided iteration, hyperparameter tuning, generates `submission.csv` |
 | **Evaluator** | Haiku | Submission format validation, metric sanity check, gates final submit |
 
----
+### Toolset
 
-## Agent Flow
+All Action Nodes (Architect, Data Engineer, Model Engineer, Evaluator) share a focused set of sandboxed tools:
 
-### Full Competition Run
+| Tool | Description |
+|---|---|
+| `run_bash_with_truncation` | Execute shell commands — run scripts, install packages (`uv add`), inspect data. Output truncated to 8K chars with first/last 2K preserved. 30-min timeout. |
+| `read_file` | Read workspace files — code, logs, memory files. Never used on raw data CSVs directly. |
+| `write_file` | Create or overwrite files — new pipeline scripts, configs, memory files. |
+| `edit_file_chunk` | Surgical find-and-replace on existing files. Must match exactly once — preferred over rewriting whole files. |
+| `dynamic_task_manager` | Ephemeral micro-task queue (push / pop / complete / list) for tracking sub-steps within a node. Wiped on each Router transition. |
 
-```mermaid
-sequenceDiagram
-    participant H as Green Agent
-    participant A as Agent.run()
-    participant SA as System_Architect
-    participant R as Router
-    participant DE as Data_Engineer
-    participant ME as Model_Engineer
-    participant EV as Evaluator
-
-    H->>A: competition.tar.gz + instructions
-    A->>A: extract tar → staging dir
-    A->>A: detect competition_id → medal targets
-    A->>SA: invoke graph (initial state)
-
-    SA->>SA: nvidia-smi · data EDA · write blueprints · git commit
-    SA->>R: handoff: "spec complete"
-
-    R->>R: append messages → all_messages · wipe context
-    R->>DE: route + assign Sonnet
-
-    DE->>DE: Wake-Up (pwd · progress · todo · git log)
-    DE->>DE: build feature pipeline · validate · commit
-    DE->>R: handoff: "arrays ready"
-
-    R->>ME: route + assign Sonnet
-
-    ME->>ME: Wake-Up
-    ME->>ME: baseline CV → tune → track delta → stop at plateau
-    ME->>ME: write submission.csv · commit
-    ME->>R: handoff: "CV 0.821, submission ready"
-
-    R->>EV: route + assign Haiku
-
-    EV->>EV: check format · check metric vs median
-    EV->>R: handoff: "DONE"
-
-    R->>A: END
-    A->>H: submit submission.csv artifact
-```
-
-### Rewind Logic
-
-```mermaid
-flowchart LR
-    B1[BLOCKER: SubmissionFail] -->|retry| EV[Evaluator]
-    B2[BLOCKER: MetricFloor] -->|rewind| ME[Model_Engineer]
-    B3[BLOCKER: ShapeError\nImportError] -->|rewind| DE[Data_Engineer]
-    B4[BLOCKER: Other] -->|rewind| Owner[phase owner\nDE or ME]
-    B5[spec fundamentally wrong] -->|rewind| SA[System_Architect]
-```
+Router_Brain uses no tools — it receives a structured input block and outputs a single JSON routing decision.
 
 ---
 
