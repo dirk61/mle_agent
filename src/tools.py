@@ -244,8 +244,9 @@ TOOL_SCHEMAS: list[dict] = [
     {
         "name": "run_bash_with_truncation",
         "description": (
-            "Execute a shell command with output truncation. "
-            "Use 'uv run python script.py' for Python scripts. "
+            "Execute a shell command. Output over 8000 chars is truncated "
+            "to the first and last 2000 chars (stack traces at the end are "
+            "preserved). Use 'uv run python script.py' for Python scripts. "
             "Returns combined stdout/stderr."
         ),
         "input_schema": {
