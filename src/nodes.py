@@ -339,25 +339,42 @@ def _run_react_loop(
 
 
 def _auto_commit(workspace_dir: str, node_name: str) -> None:
-    """Commit any uncommitted files the LLM left behind after a node exit."""
+    """Commit code/memory files the LLM left behind after a node exit.
+
+    Never stages data files, images, models, or archives — only
+    source code, scripts, and memory markdown files.
+    """
     if not workspace_dir or workspace_dir == ".":
         return
-    # Check if there's anything to commit
+    # Check if there's anything to commit (quick check first)
     status = subprocess.run(
         ["git", "status", "--porcelain"],
         cwd=workspace_dir, capture_output=True, text=True, check=False,
     )
     if not status.stdout.strip():
         return  # nothing to commit
+
+    # Stage only code and memory files — never data/images/models
     subprocess.run(
-        ["git", "add", "-A"],
+        ["git", "add",
+         "*.py", "*.md", "*.txt", "*.json", "*.yaml", "*.yml",
+         "*.toml", "*.lock", "*.sh",
+         "src/", "logs/",
+        ],
         cwd=workspace_dir, capture_output=True, check=False,
     )
+    # Check if anything got staged
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--name-only"],
+        cwd=workspace_dir, capture_output=True, text=True, check=False,
+    )
+    if not staged.stdout.strip():
+        return
     subprocess.run(
         ["git", "commit", "-m", f"Auto-commit after {node_name} exit"],
         cwd=workspace_dir, capture_output=True, check=False,
     )
-    log.info("[%s] Auto-committed uncommitted files", node_name)
+    log.info("[%s] Auto-committed: %s", node_name, staged.stdout.strip().replace("\n", ", "))
 
 
 # ── Action Node Factory ─────────────────────────────────────────────────
@@ -455,6 +472,19 @@ def _bootstrap_workspace(staging_path: str) -> str:
     # Create workspace directory structure
     for subdir in ("data/raw", "data/processed", "src", "models", "logs"):
         os.makedirs(os.path.join(workspace_dir, subdir), exist_ok=True)
+
+    # Write .gitignore to prevent staging large data/model files
+    gitignore = os.path.join(workspace_dir, ".gitignore")
+    with open(gitignore, "w") as f:
+        f.write(
+            "# Auto-generated — never commit raw data, images, or model binaries\n"
+            "data/raw/\n"
+            "data/processed/\n"
+            "*.zip\n*.tar\n*.tar.gz\n*.pt\n*.pth\n*.pkl\n*.h5\n*.joblib\n"
+            "*.jpg\n*.jpeg\n*.png\n*.gif\n*.bmp\n*.tif\n*.tiff\n"
+            "*.mp3\n*.wav\n*.flac\n*.ogg\n"
+            ".venv/\n__pycache__/\n*.pyc\n"
+        )
 
     # Symlink project prompts into workspace so read_file("prompts/...") works.
     # Resolves the path mismatch between workspace (/tmp/...) and project root.
