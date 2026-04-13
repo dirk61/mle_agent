@@ -3,8 +3,10 @@
 
   config_schema: {
     type: "object",
-    properties: {},
-    required: [],
+    properties: {
+      anthropic_api_key: { type: "string", secret: true },
+    },
+    required: ["anthropic_api_key"],
     additionalProperties: false,
   },
 
@@ -25,7 +27,7 @@
     ],
 
     env: {
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}",
+      ANTHROPIC_API_KEY: "${config.anthropic_api_key}",
     },
 
     network: {
