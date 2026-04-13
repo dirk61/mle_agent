@@ -1,4 +1,4 @@
-Current Objective: Build Phase 3 — Prompt System (loader, assembly, Router input block)
-Current State: Phase 1+2 COMPLETE. AgentState updated with micro_tasks + workspace_dir fields, messages use plain list (no reducer) for clean wipe semantics, all_messages uses operator.add. Tools in src/tools.py, ToolNode in src/tool_node.py. All verified with comprehensive dummy-data tests.
+Current Objective: Build Phase 4 — Node Implementation (Action Node wrapper, System_Architect, Router_Brain)
+Current State: Phase 1+2+3 COMPLETE. Prompt system in src/prompts.py: loader reads all prompt files at import, assemble_system_prompt() builds per-node system prompts (static_base + protocols + ml_rules for Action Nodes, static_base only for Router), assemble_router_input() builds structured input block from state + ml_progress.txt. Dockerfile updated with COPY prompts. All verified.
 Blockers: None
-Next Steps: Start Phase 3 of todo.md — implement prompt loader (Ref: spec_prompting.md → Templates Reference)
+Next Steps: Start Phase 4 of todo.md — implement Action Node wrapper with ReAct loop (Ref: spec_state.md → Nodes 3-5, Graph Lifecycle)

@@ -16,9 +16,9 @@
 - [x] Verify: test script exercising each tool with dummy inputs — Ref: CLAUDE.md §5
 
 ## Phase 3: Prompt System
-- [ ] Implement prompt loader: read static bases from `prompts/nodes/` and protocol snippets from `prompts/protocols/` at startup. Update Dockerfile to `COPY prompts prompts`. — Ref: spec_prompting.md → Templates Reference, Implementation Note
-- [ ] Implement prompt assembly: `static_base + wake_up + sign_off + ml_rules` for Action Nodes; handle first System_Architect entry (no ml_rules yet) — Ref: spec_prompting.md → Implementation Note
-- [ ] Implement Router input block assembly: read `ml_progress.txt` from workspace, format structured block (CURRENT_PHASE, HANDOFF_MESSAGE, PROGRESS_EXCERPT, AVAILABLE_NODES, ITERATION_COUNT) — Ref: spec_prompting.md → Router Decision Interface
+- [x] Implement prompt loader: read static bases from `prompts/nodes/` and protocol snippets from `prompts/protocols/` at startup. Update Dockerfile to `COPY prompts prompts`. — Ref: spec_prompting.md → Templates Reference, Implementation Note
+- [x] Implement prompt assembly: `static_base + wake_up + sign_off + ml_rules` for Action Nodes; handle first System_Architect entry (no ml_rules yet) — Ref: spec_prompting.md → Implementation Note
+- [x] Implement Router input block assembly: read `ml_progress.txt` from workspace, format structured block (CURRENT_PHASE, HANDOFF_MESSAGE, PROGRESS_EXCERPT, AVAILABLE_NODES, ITERATION_COUNT) — Ref: spec_prompting.md → Router Decision Interface
 
 ## Phase 4: Node Implementation
 - [ ] Implement Action Node wrapper: ReAct loop (LLM call → tool calls? → ToolNode : exit), `recursion_limit`, capture final LLM text as `handoff_message` — Ref: spec_state.md → Nodes 3-5, Graph Lifecycle
