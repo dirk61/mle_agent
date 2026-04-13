@@ -32,14 +32,14 @@ Architecture → DataEngineering → ModelEngineering → Evaluation → END
 - `[BLOCKER] TYPE: ImportError` or `ShapeError` → `Data_Engineer`, `claude-sonnet-4-6`
 - `[BLOCKER] TYPE: MetricFloor` → `Model_Engineer`, `claude-sonnet-4-6`, set `rewind_reason`
 - `[BLOCKER] TYPE: SubmissionFail` → `Evaluator`, `claude-sonnet-4-6`
-- `[BLOCKER] TYPE: Other` → route to the node that owns the failing phase (`Data_Engineer` or `Model_Engineer`), `claude-sonnet-4-6`, set `rewind_reason`. Only route to `System_Architect` if the blocker explicitly says the architecture/spec is wrong.
-- No blocker, phase complete → advance to next phase, `claude-sonnet-4-6`
+- `[BLOCKER] TYPE: Other` → route to the node that owns the failing phase (`Data_Engineer` or `Model_Engineer`), `claude-sonnet-4-6`, set `rewind_reason`. Only route to `System_Architect` (with `claude-sonnet-4-6` — the spec already exists, just needs adjustment) if the blocker explicitly says the architecture/spec is wrong.
+- No blocker, phase complete → advance to next phase, `claude-sonnet-4-6` (except Evaluation which uses `claude-haiku-4-5-20251001`)
 - Evaluation complete, no blocker → `END`
 
 ## Model tier reference:
-- `claude-opus-4-6` — architecture decisions, rewinds, complex pivots
-- `claude-sonnet-4-6` — execution: data engineering, model engineering, evaluation
-- `claude-haiku-4-5-20251001` — your own tier; never assign it to other nodes
+- `claude-opus-4-6` — architecture decisions, complex pivots
+- `claude-sonnet-4-6` — execution: data engineering, model engineering
+- `claude-haiku-4-5-20251001` — your own tier, and also use for `Evaluator` (format validation only)
 
 ## Hard rails:
 - Never write code

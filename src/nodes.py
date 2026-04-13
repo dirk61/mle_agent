@@ -143,6 +143,39 @@ def _dump_trace(workspace_dir: str, node_name: str, tool_round: int,
     )
 
 
+# ── Context Window Management ────────────────────────────────────────────
+
+# Max recent message pairs (assistant + tool_result) to keep in context.
+# Each pair ≈ 2-4K tokens. 20 pairs ≈ 40-80K tokens — fits comfortably
+# in context while preventing the unbounded growth that makes round 50
+# cost 5x more than round 5.
+MAX_CONTEXT_PAIRS = 20
+
+
+def _windowed_messages(messages: list[dict]) -> list[dict]:
+    """Keep the first message + last MAX_CONTEXT_PAIRS exchanges.
+
+    Inserts a summary note when old messages are dropped so the LLM
+    knows context was trimmed and can read_file() logs if needed.
+    """
+    if len(messages) <= 1 + MAX_CONTEXT_PAIRS * 2:
+        return messages  # fits already
+
+    first = messages[:1]  # handoff / instructions
+    recent = messages[-(MAX_CONTEXT_PAIRS * 2):]
+    dropped = len(messages) - len(first) - len(recent)
+
+    summary = {
+        "role": "user",
+        "content": (
+            f"[System: {dropped} earlier messages were trimmed from context to save tokens. "
+            "Your earlier work is preserved in logs/bash_history.log and logs/all_messages.jsonl — "
+            "use read_file() if you need to review past output.]"
+        ),
+    }
+    return first + [summary] + recent
+
+
 # ── Message Helpers ──────────────────────────────────────────────────────
 
 
@@ -216,10 +249,16 @@ def _run_react_loop(
             log.warning(handoff_message)
             break
 
+        # Sliding context window: keep first message (handoff/instructions)
+        # + last MAX_CONTEXT_MESSAGES exchanges to prevent unbounded token growth.
+        # Old messages are already persisted in logs/all_messages.jsonl and
+        # logs/bash_history.log — the LLM can read_file() them if needed.
+        llm_messages = _windowed_messages(messages)
+
         response = call_llm(
             tier=tier,
             system=system,
-            messages=messages,
+            messages=llm_messages,
             tools=TOOL_SCHEMAS,
         )
 
