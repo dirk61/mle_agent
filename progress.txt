@@ -1,4 +1,4 @@
-Current Objective: Build Phase 2 — Tool Layer (bash, file tools, task manager, Universal_ToolNode)
-Current State: Phase 1 COMPLETE — langgraph+anthropic deps added, AgentState TypedDict in src/state.py, LLM wrapper in src/llm.py. All verified.
+Current Objective: Build Phase 3 — Prompt System (loader, assembly, Router input block)
+Current State: Phase 1+2 COMPLETE. AgentState updated with micro_tasks + workspace_dir fields, messages use plain list (no reducer) for clean wipe semantics, all_messages uses operator.add. Tools in src/tools.py, ToolNode in src/tool_node.py. All verified with comprehensive dummy-data tests.
 Blockers: None
-Next Steps: Start Phase 2 of todo.md — implement run_bash_with_truncation (Ref: spec_tool.md §1)
+Next Steps: Start Phase 3 of todo.md — implement prompt loader (Ref: spec_prompting.md → Templates Reference)
