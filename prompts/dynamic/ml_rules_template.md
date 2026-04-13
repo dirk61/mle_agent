@@ -15,6 +15,25 @@
 
 ---
 
+## Medal Targets
+
+> These are the leaderboard score thresholds for medal placement.
+> Use them as concrete optimization targets. Aim for at least bronze first,
+> then iterate toward gold if time permits. Every architectural and modeling
+> decision should be evaluated against these numbers.
+
+| Medal | Score Threshold |
+|-------|-----------------|
+| Gold | `<gold_score>` |
+| Silver | `<silver_score>` |
+| Bronze | `<bronze_score>` |
+| Median | `<median_score>` |
+
+**Score direction:** <higher is better / lower is better>
+**Interpretation:** <For "higher is better": your score must be >= threshold. For "lower is better": your score must be <= threshold.>
+
+---
+
 ## I/O Paths
 
 > All paths below are relative to the competition workspace root.

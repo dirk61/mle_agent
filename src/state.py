@@ -46,3 +46,7 @@ class AgentState(TypedDict):
 
     # Absolute path to competition workspace directory.
     workspace_dir: str
+
+    # Competition identifier (e.g. "spaceship-titanic").
+    # Used to look up medal score thresholds from the static table.
+    competition_id: str
