@@ -60,8 +60,15 @@ def run_bash_with_truncation(
             text=True,
             env=env,
         )
-    except subprocess.TimeoutExpired:
-        return f"[ERROR: Command timed out after {timeout_seconds}s]\n{command}"
+    except subprocess.TimeoutExpired as e:
+        # Capture any partial output the process produced before being killed
+        partial = ""
+        if e.stdout:
+            partial = e.stdout if isinstance(e.stdout, str) else e.stdout.decode("utf-8", errors="replace")
+            # Keep last 2K chars so the agent can see what happened
+            if len(partial) > 2000:
+                partial = "...\n" + partial[-2000:]
+        return f"[ERROR: Command timed out after {timeout_seconds}s]\n{partial}"
     except Exception as e:
         return f"[ERROR: Failed to execute command]\n{e}"
 

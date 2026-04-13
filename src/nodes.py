@@ -101,14 +101,29 @@ def _dump_trace(workspace_dir: str, node_name: str, tool_round: int,
         return
     trace_file = os.path.join(workspace_dir, _TRACE_PATH)
     os.makedirs(os.path.dirname(trace_file), exist_ok=True)
-    # Write the last 2 messages (assistant response + tool result) as a compact snapshot
+    # Write the last 2 messages (assistant response + tool result).
+    # Truncate long tool results to keep trace readable but still diagnostic.
     recent = messages[-2:] if len(messages) >= 2 else messages
+    truncated = []
+    for msg in recent:
+        msg_copy = dict(msg)
+        content = msg_copy.get("content", "")
+        if isinstance(content, list):
+            new_blocks = []
+            for block in content:
+                if isinstance(block, dict) and "content" in block:
+                    text = str(block["content"])
+                    if len(text) > 1000:
+                        block = {**block, "content": text[:500] + "\n...[TRUNCATED]...\n" + text[-500:]}
+                new_blocks.append(block)
+            msg_copy["content"] = new_blocks
+        truncated.append(msg_copy)
     entry = {
         "node": node_name,
         "tool_round": tool_round,
         "router_iteration": iteration_count,
         "elapsed_min": round(_elapsed_min(), 1),
-        "messages": recent,
+        "messages": truncated,
     }
     try:
         with open(trace_file, "a") as f:
