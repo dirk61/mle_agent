@@ -83,6 +83,8 @@ def main():
     server = A2AStarletteApplication(
         agent_card=agent_card,
         http_handler=request_handler,
+        # 512MB — covers large image/audio competition tars (default is 10MB)
+        max_content_length=512 * 1024 * 1024,
     )
     uvicorn.run(server.build(), host=args.host, port=args.port)
 
