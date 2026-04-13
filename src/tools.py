@@ -42,6 +42,10 @@ def run_bash_with_truncation(
             "Use 'uv run python script.py' instead.]"
         )
 
+    # Strip VIRTUAL_ENV so workspace's own uv/venv isn't confused by the
+    # parent server process's venv.
+    env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+
     try:
         result = subprocess.run(
             command,
@@ -51,6 +55,7 @@ def run_bash_with_truncation(
             timeout=timeout_seconds,
             cwd=workspace_dir,
             text=True,
+            env=env,
         )
     except subprocess.TimeoutExpired:
         return f"[ERROR: Command timed out after {timeout_seconds}s]\n{command}"
