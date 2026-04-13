@@ -131,6 +131,17 @@ def _dump_trace(workspace_dir: str, node_name: str, tool_round: int,
     except Exception:
         pass  # non-critical — don't crash the pipeline for a log write
 
+    # Also log a compact summary to stderr so it appears in platform logs
+    tool_names = []
+    for msg in recent:
+        for b in (msg.get("content", []) if isinstance(msg.get("content"), list) else []):
+            if isinstance(b, dict) and b.get("type") == "tool_use":
+                tool_names.append(b["name"])
+    log.info(
+        "[TRACE] %s r=%d iter=%d [%.1fmin] tools=%s",
+        node_name, tool_round, iteration_count, _elapsed_min(), tool_names or "end_turn",
+    )
+
 
 # ── Message Helpers ──────────────────────────────────────────────────────
 
