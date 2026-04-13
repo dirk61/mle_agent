@@ -24,7 +24,7 @@ INTERACTIVE_BLOCKLIST = frozenset(
 
 def run_bash_with_truncation(
     command: str,
-    timeout_seconds: int = 1800,
+    timeout_seconds: int = 300,
     *,
     workspace_dir: str = ".",
 ) -> str:
@@ -310,8 +310,8 @@ TOOL_SCHEMAS: list[dict] = [
                 },
                 "timeout_seconds": {
                     "type": "integer",
-                    "description": "Maximum execution time in seconds. Default is 1800 (30 min).",
-                    "default": 1800,
+                    "description": "Maximum execution time in seconds. Default is 300 (5 min) — override explicitly for long training runs.",
+                    "default": 300,
                 },
             },
             "required": ["command"],
