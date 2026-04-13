@@ -208,11 +208,37 @@ def _run_react_loop(
             "Yielding to Router with partial progress."
         )
 
+    # Safety net: auto-commit any uncommitted work the LLM left behind.
+    # The Sign-Off protocol asks the LLM to commit, but it doesn't always.
+    _auto_commit(workspace_dir, node_name)
+
     return {
         "messages": messages,
         "handoff_message": handoff_message,
         "micro_tasks": micro_tasks,
     }
+
+
+def _auto_commit(workspace_dir: str, node_name: str) -> None:
+    """Commit any uncommitted files the LLM left behind after a node exit."""
+    if not workspace_dir or workspace_dir == ".":
+        return
+    # Check if there's anything to commit
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=workspace_dir, capture_output=True, text=True, check=False,
+    )
+    if not status.stdout.strip():
+        return  # nothing to commit
+    subprocess.run(
+        ["git", "add", "-A"],
+        cwd=workspace_dir, capture_output=True, check=False,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", f"Auto-commit after {node_name} exit"],
+        cwd=workspace_dir, capture_output=True, check=False,
+    )
+    log.info("[%s] Auto-committed uncommitted files", node_name)
 
 
 # ── Action Node Factory ─────────────────────────────────────────────────
