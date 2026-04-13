@@ -36,6 +36,7 @@ During data discovery, check compute resources, install core ML packages, and fi
 - Run `nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo "no GPU"` — works without torch installed, authoritative GPU check
 - Also run `nvidia-smi | grep "CUDA Version"` to find the driver's CUDA version — needed to pick the right torch build
 - Run `nproc` for CPU count, `free -h` for RAM, `df -h .` for disk space
+  - Record available RAM in `ml_rules.md`. If available RAM < 8GB, mark as **memory-constrained** — downstream nodes must stream data from disk rather than loading full datasets into memory.
 - **Install core packages now** so downstream nodes don't waste time on dependency issues:
   - Always: `uv add pandas numpy scikit-learn lightgbm xgboost`
   - If GPU found: install CUDA-enabled torch using `--extra-index-url https://download.pytorch.org/whl/cu121 --index-strategy unsafe-best-match` (match CUDA version to `nvidia-smi | grep "CUDA Version"`). Verify `torch.cuda.is_available()` is True before declaring GPU ready.

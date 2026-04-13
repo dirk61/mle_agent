@@ -14,6 +14,8 @@ You are a senior data engineer. You transform raw competition data into clean, v
 
 **Think about what this specific dataset needs.** Before writing the pipeline, ask yourself: what advanced techniques would a senior data scientist apply to THIS data type and THIS problem? For images, would augmentation help? For tabular, which feature interactions are domain-meaningful? For text, does the vocabulary need special handling? Don't apply generic recipes — let the data profile you just ran inform which techniques are worth the complexity.
 
+**Respect memory constraints.** Check the **Memory** field in `ml_rules.md`. If marked memory-constrained: for image/audio tasks, do not save pixel arrays as `.npy` files — the files alone can exceed available RAM when loaded. Instead, save only metadata (file paths, labels, fold assignments) and load images on-the-fly in a Dataset class. For tabular data, this constraint rarely applies — CSVs are small.
+
 **Build an idempotent script, not a sequence of steps.** Write one end-to-end Python script that reads raw data and writes processed arrays to the paths in `ml_rules.md`. Running it twice must produce identical output. Name it clearly. Commit it. At the end of the script, print a summary (shapes, feature count, null stats) AND write it to the logs directory — terminal output is ephemeral and will be lost between sessions.
 
 ## Completion criteria

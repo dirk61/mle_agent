@@ -15,14 +15,14 @@ We evaluated across a diverse set of competitions spanning differnt categories a
 
 mle_bench leaderboard https://agentbeats.dev/agentbeater/mle-bench
 
-| Competition | Category | Difficulty | Score | Gold | Medal |
-|---|---|---|---|---|---|
-| spaceship-titanic | Tabular | 🟩 | 0.83218 | 0.821 | Gold 🥇 |
-| aerial-cactus-identification | Image Classification | 🟩 | 1.000 | 1.000 | Above median |
+| Competition | Category | Score | Gold | Medal |
+|---|---|---|---|---|
+| spaceship-titanic | Tabular | 0.832 | 0.821 | Gold 🥇 |
+| denoising-dirty-documents | Image to Image | 0.013 | 0.018 | Gold 🥇 |
+| mlsp-2013-birds | Audio Classification | 0.875 | 0.935 | Bronze 🥉 |
+| aerial-cactus-identification | Image Classification | 0.99995 | 1.000 | Above median |
 
-🟩 Easy.    🟨 Medium.    🟥 Difficult. 
-
-Benchmarking **STILL ONGOING** across competition categories and difficulty levels.
+Benchmarking **STILL ONGOING** on ML competitions across categories.
 
 ---
 
@@ -157,7 +157,6 @@ mle_agent/
 ├── amber-manifest.json5      # AgentBeats deployment config
 └── pyproject.toml
 ```
-
 
 
 

@@ -56,6 +56,7 @@ All nodes must read and write to exactly these paths. Do not invent new paths.
 - <Any competition-specific rule, e.g. "External data not permitted">
 - <Any known data quirks, e.g. "Target column has 3% missing values in train; treat as negative class">
 - **Hardware:** <GPU availability, e.g. "GPU at /dev/cuda:0" or "CPU only">
+- **Memory:** <available RAM + constraint flag, e.g. "6GB available — memory-constrained: stream data from disk, do not load full dataset into RAM" or "28GB available — no memory constraint">
 - **Storage:** <Available disk, e.g. "~10 GB workspace disk — check `df -h .` before downloading large models or caching datasets. Clean up temp files after use.">
 - **Time budget:** <Wall-clock limit, e.g. "~1 hour ideal, 1.5 hour typical, 2 hour hard cap">
 
