@@ -30,8 +30,11 @@ from src.tools import TOOL_SCHEMAS
 
 # ── Constants ────────────────────────────────────────────────────────────
 
-# Maximum tool-call rounds per Action Node invocation
-DEFAULT_RECURSION_LIMIT = 50
+# Maximum tool-call rounds per Action Node invocation.
+# 35 covers a full pipeline: ~10 baseline + ~10 first tuning + ~10 second
+# model + ~5 ensemble/finalize. Rounds beyond ~30 are empirically noise-level
+# CV gains (<0.3% relative) that hurt test generalization.
+DEFAULT_RECURSION_LIMIT = 35
 
 # Wall-clock timeout for the entire graph run (seconds).
 # Safety net — prevents unbounded token burn on external platforms.
