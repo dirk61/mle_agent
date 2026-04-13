@@ -18,9 +18,10 @@
 ## Medal Targets
 
 > These are the leaderboard score thresholds for medal placement.
-> Use them as concrete optimization targets. Aim for gold.
-> Every architectural and modeling decision should be evaluated against
-> these numbers.
+> Use them as calibration markers to know if you're in the right ballpark.
+> Design the pipeline to be capable of gold-level performance, but
+> optimize by ML instinct (CV trends, overfitting signals), not by
+> chasing these numbers.
 
 | Medal | Score Threshold |
 |-------|-----------------|
