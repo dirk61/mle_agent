@@ -8,7 +8,20 @@ The core design challenge mirrors how real [MLE] teams stay aligned across long 
 
 Cost-performance balance is a first-class concern: hard iteration caps and prompted ML instincts actively discourage over-optimizing on validation — compute is spent where it generalizes, not where it overfits. A post-run LLM-as-a-judge evaluation is also implemented to enable systematic improvement across competition runs. 
 
-We evaluated across a diverse set of competitions spanning differnt categories and difficulties, showing competitive scores and validating the robustness of this agent design. Full benchmark results are tracked in the README.md.
+We evaluated across a diverse set of competitions spanning differnt categories and difficulties, showing competitive scores and validating the robustness of this agent design.
+
+---
+
+## Results
+
+| Competition | Category | Difficulty | Score | Gold | Medal |
+|---|---|---|---|---|---|
+| spaceship-titanic | Tabular classification | 🟩 | 0.83218 | 0.821 | Gold 🥇 |
+| aerial-cactus-identification | Image classification | 🟩 | 1.000 | 1.000 | Above median |
+
+🟩 Easy.    🟨 Medium.    🟥 Difficult. 
+
+Benchmarking **STILL ONGOING** across competition categories and difficulty levels.
 
 ---
 
@@ -146,16 +159,7 @@ mle_agent/
 ```
 
 
----
 
-<!--## Results
-
-| Competition | Category | Score | Gold threshold | Medal 
-|---|---|---|---|---|---|
-| spaceship-titanic | Tabular classification | 0.799 | 0.821 | Above median 
-| aerial-cactus-identification | Image classification | 0.99995	 | 1.000 | Above median 
-
-*Benchmarking ongoing across competition categories and difficulty levels. Per-fold CV breakdowns and training traces are in each workspace's `logs/` directory.*-->
 
 ---
 
