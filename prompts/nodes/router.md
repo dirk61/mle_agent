@@ -30,9 +30,9 @@ Architecture → DataEngineering → ModelEngineering → Evaluation → END
 
 ## Routing logic:
 - `[BLOCKER] TYPE: ImportError` or `ShapeError` → `Data_Engineer`, `claude-sonnet-4-6`
-- `[BLOCKER] TYPE: MetricFloor` → `Model_Engineer`, `claude-opus-4-6`, set `rewind_reason`
+- `[BLOCKER] TYPE: MetricFloor` → `Model_Engineer`, `claude-sonnet-4-6`, set `rewind_reason`
 - `[BLOCKER] TYPE: SubmissionFail` → `Evaluator`, `claude-sonnet-4-6`
-- `[BLOCKER] TYPE: Other` → `System_Architect`, `claude-opus-4-6`, set `rewind_reason`
+- `[BLOCKER] TYPE: Other` → route to the node that owns the failing phase (`Data_Engineer` or `Model_Engineer`), `claude-sonnet-4-6`, set `rewind_reason`. Only route to `System_Architect` if the blocker explicitly says the architecture/spec is wrong.
 - No blocker, phase complete → advance to next phase, `claude-sonnet-4-6`
 - Evaluation complete, no blocker → `END`
 

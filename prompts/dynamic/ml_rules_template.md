@@ -18,9 +18,9 @@
 ## Medal Targets
 
 > These are the leaderboard score thresholds for medal placement.
-> Use them as concrete optimization targets. Aim for at least bronze first,
-> then iterate toward gold if time permits. Every architectural and modeling
-> decision should be evaluated against these numbers.
+> Use them as concrete optimization targets. Aim for gold.
+> Every architectural and modeling decision should be evaluated against
+> these numbers.
 
 | Medal | Score Threshold |
 |-------|-----------------|
