@@ -22,7 +22,8 @@ import logging
 # ── Logging ──────────────────────────────────────────────────────────────
 # File-based log captures everything (agent loop, LLM calls, errors)
 # for post-run diagnosis. Also streams to stderr for live monitoring.
-_LOG_PATH = os.environ.get("MLE_AGENT_LOG", "/tmp/mle_agent.log")
+_DEFAULT_LOG = "/data1/six004/tmp/mle_agent.log" if os.path.isdir("/data1") else "/tmp/mle_agent.log"
+_LOG_PATH = os.environ.get("MLE_AGENT_LOG", _DEFAULT_LOG)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",

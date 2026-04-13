@@ -46,7 +46,10 @@ GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 7200))
 MAX_ITERATIONS = 15
 
 # Where competition workspaces are created
-WORKSPACE_ROOT = os.environ.get("WORKSPACE_ROOT", "/tmp/mle_agent_workspaces")
+# Use /data1 if available (3TB+ disk for torch CUDA packages, models, etc.)
+# Falls back to /tmp in Docker/CI where /data1 doesn't exist.
+_DEFAULT_WORKSPACE = "/data1/six004/tmp/mle_agent_workspaces" if os.path.isdir("/data1") else "/tmp/mle_agent_workspaces"
+WORKSPACE_ROOT = os.environ.get("WORKSPACE_ROOT", _DEFAULT_WORKSPACE)
 
 # Reverse mapping: Anthropic model ID -> tier name
 _REVERSE_MODEL_MAP: dict[str, str] = {v: k for k, v in MODEL_MAP.items()}
@@ -498,6 +501,9 @@ def _bootstrap_workspace(staging_path: str) -> str:
         k: v for k, v in os.environ.items()
         if k not in ("VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV")
     }
+    if os.path.isdir("/data1"):
+        clean_env.setdefault("UV_CACHE_DIR", "/data1/six004/tmp/uv_cache")
+        clean_env.setdefault("TMPDIR", "/data1/six004/tmp")
     subprocess.run(
         ["uv", "init", "--python", "3.12"],
         cwd=workspace_dir,

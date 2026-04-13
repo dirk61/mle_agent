@@ -48,6 +48,10 @@ def run_bash_with_truncation(
         k: v for k, v in os.environ.items()
         if k not in ("VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV")
     }
+    # Redirect uv/pip cache to /data1 if available to avoid filling /tmp or /
+    if os.path.isdir("/data1"):
+        env.setdefault("UV_CACHE_DIR", "/data1/six004/tmp/uv_cache")
+        env.setdefault("TMPDIR", "/data1/six004/tmp")
 
     try:
         result = subprocess.run(
