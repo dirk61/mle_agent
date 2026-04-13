@@ -16,27 +16,34 @@ We evaluated across a diverse set of competitions spanning differnt categories a
 
 ### Agent Graph
 
-```mermaid
-flowchart TD
-    SA[🏗️ System_Architect\nOpus · Planning]
-    RB[🧭 Router_Brain\nHaiku · Orchestration]
-    DE[⚙️ Data_Engineer\nSonnet · Features]
-    ME[🤖 Model_Engineer\nSonnet · Training]
-    EV[✅ Evaluator\nHaiku · Validation]
-    END([🏁 END])
-
-    SA --> RB
-    RB -->|DataEngineering| DE
-    RB -->|ModelEngineering| ME
-    RB -->|Evaluation| EV
-    RB -->|Rewind: spec wrong| SA
-    RB -->|Rewind: data bug| DE
-    RB -->|Rewind: model bug| ME
-    RB -->|budget exceeded| EV
-    RB --> END
-    DE --> RB
-    ME --> RB
-    EV --> RB
+```
+                         ┌─────────────────────────────────┐
+                         │                                 │
+                         ▼                                 │  rewind
+              ┌─────────────────────┐                     │  (spec wrong)
+   START ───► │   System_Architect  │                     │
+              │   Opus · Planning   │                     │
+              └──────────┬──────────┘                     │
+                         │                                 │
+                         ▼                                 │
+              ┌─────────────────────┐                     │
+         ┌───►│    Router_Brain     │◄────────────────────┘
+         │    │  Haiku · Manager   │
+         │    └──┬────┬────┬───────┘
+         │       │    │    │
+         │  ┌────┘    │    └────────┐
+         │  │         │             │
+         │  ▼         ▼             ▼
+         │  ┌──────┐  ┌──────────┐  ┌───────────┐
+         │  │  DE  │  │    ME    │  │    EV     │
+         │  │Sonnet│  │ Sonnet   │  │  Haiku    │
+         │  │ Data │  │  Model   │  │ Evaluate  │
+         │  └──┬───┘  └────┬─────┘  └─────┬─────┘
+         │     │           │              │
+         └─────┴───────────┘              │
+                  back to Router          │
+                                          ▼
+                                        END
 ```
 
 ### Node Roles
@@ -176,42 +183,6 @@ mle_agent/
 └── pyproject.toml
 ```
 
----
-
-## Running Locally
-
-### Prerequisites
-
-```bash
-# API key
-echo "ANTHROPIC_API_KEY=your-key-here" > .env
-
-# Dependencies
-uv sync --locked
-```
-
-### Run a Full Assessment
-
-```bash
-# Edit competition_id in scenario.toml first
-cd /path/to/agentbeats-tutorial
-uv run agentbeats-run scenario.toml --show-logs
-```
-
-### Monitor Live
-
-```bash
-# Server logs (node transitions, tool rounds, elapsed time)
-tail -f /tmp/mle_agent.log
-
-# Full LLM trace per tool round
-tail -f /tmp/mle_agent_workspaces/competition_*/logs/all_messages.jsonl | python3 -c "
-import sys, json
-for line in sys.stdin:
-    e = json.loads(line)
-    print(f'[{e[\"elapsed_min\"]:.1f}min] {e[\"node\"]} r={e[\"tool_round\"]} iter={e[\"router_iteration\"]}')
-"
-```
 
 ---
 
