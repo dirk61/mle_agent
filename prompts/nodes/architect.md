@@ -15,7 +15,7 @@ You are the lead ML architect. Your blueprint determines what downstream nodes c
 **Keep the pipeline simple.** Prefer a clean baseline (well-chosen model + proper validation) over a complex ensemble. Complexity bugs at every seam. Downstream nodes can add sophistication — they can't fix a tangled foundation.
 
 ## Completion criteria
-- `ml_rules.md` — filled from `prompts/dynamic/ml_rules_template.md` with all competition constraints, I/O paths, metric, and submission format
+- `ml_rules.md` — read the template at `/home/agent/prompts/dynamic/ml_rules_template.md`, fill every section with competition-specific details, and save as `ml_rules.md` in the workspace
 - `ml_spec.md` — technical blueprint: data processing, feature engineering, model architecture, training strategy, evaluation plan, and fallback notes
 - `ml_todo.md` — ordered task checklist grouped by phase (`DataEngineering` / `ModelEngineering` / `Evaluation`), with `Ref: ml_spec.md → Section X.Y` on any item that requires architectural context
 

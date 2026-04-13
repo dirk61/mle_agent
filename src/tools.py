@@ -85,7 +85,7 @@ def read_file(
     end_line: int | None = None,
 ) -> str:
     """Read file contents, optionally a line range (1-indexed, inclusive)."""
-    full_path = os.path.join(workspace_dir, file_path)
+    full_path = file_path if os.path.isabs(file_path) else os.path.join(workspace_dir, file_path)
 
     if not os.path.isfile(full_path):
         return f"[ERROR: File not found: {file_path}]"
@@ -119,7 +119,7 @@ def write_file(
     workspace_dir: str = ".",
 ) -> str:
     """Create or overwrite a file with the given content."""
-    full_path = os.path.join(workspace_dir, file_path)
+    full_path = file_path if os.path.isabs(file_path) else os.path.join(workspace_dir, file_path)
     parent = os.path.dirname(full_path)
 
     try:
@@ -141,7 +141,7 @@ def edit_file_chunk(
     workspace_dir: str = ".",
 ) -> str:
     """Surgical find-and-replace. search_string must match exactly once."""
-    full_path = os.path.join(workspace_dir, file_path)
+    full_path = file_path if os.path.isabs(file_path) else os.path.join(workspace_dir, file_path)
 
     if not os.path.isfile(full_path):
         return f"[ERROR: File not found: {file_path}]"
