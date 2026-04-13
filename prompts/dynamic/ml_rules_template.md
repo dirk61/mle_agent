@@ -15,24 +15,6 @@
 
 ---
 
-## Medal Targets
-
-> These are the leaderboard score thresholds for medal placement.
-> Use them as calibration markers to know if you're in the right ballpark.
-> Design the pipeline to be capable of gold-level performance, but
-> optimize by ML instinct (CV trends, overfitting signals), not by
-> chasing these numbers.
-
-| Medal | Score Threshold |
-|-------|-----------------|
-| Gold | `<gold_score>` |
-| Silver | `<silver_score>` |
-| Bronze | `<bronze_score>` |
-| Median | `<median_score>` |
-
-**Score direction:** <higher is better / lower is better>
-**Interpretation:** <For "higher is better": your score must be >= threshold. For "lower is better": your score must be <= threshold.>
-
 ---
 
 ## I/O Paths

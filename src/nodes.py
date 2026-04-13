@@ -396,31 +396,12 @@ def system_architect_node(state: AgentState) -> dict:
         staging_path = state.get("handoff_message", "")
         workspace_dir = _bootstrap_workspace(staging_path)
 
-        # Look up medal thresholds for this competition
-        competition_id = state.get("competition_id", "")
-        medals = get_medal_thresholds(competition_id)
-        if medals:
-            direction = "lower is better" if medals["is_lower_better"] else "higher is better"
-            medal_block = (
-                f"\n\nMedal Score Targets ({direction}):\n"
-                f"  Gold:   {medals['gold']}\n"
-                f"  Silver: {medals['silver']}\n"
-                f"  Bronze: {medals['bronze']}\n"
-                f"  Median: {medals['median']}\n"
-                "Write these into the Medal Targets section of ml_rules.md."
-            )
-        else:
-            medal_block = (
-                "\n\nMedal targets: not available for this competition."
-            )
-
-        # Annotate the first user message with workspace + medal info
+        # Annotate the first user message with workspace info only
         bootstrap_note = (
             "\n\n---\n"
             f"[System] Workspace bootstrapped at: {workspace_dir}\n"
             "Dataset files placed in: data/raw/\n"
             "git and uv initialized. All tool paths are relative to workspace root."
-            f"{medal_block}"
         )
         if messages and messages[0]["role"] == "user":
             content = messages[0]["content"]
