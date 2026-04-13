@@ -35,9 +35,8 @@ DEFAULT_RECURSION_LIMIT = 50
 
 # Wall-clock timeout for the entire graph run (seconds).
 # Safety net — prevents unbounded token burn on external platforms.
-# Normal runs finish well under this. Only triggers in edge cases.
-# Default ~100 min — generous for complex competitions, still caps runaway.
-GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 6000))
+# Ideal ~1hr, typical ~1.5hr, hard cap 2hr. Only triggers in edge cases.
+GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 7200))
 
 # Maximum Router transitions before forcing END.
 # Happy path = ~5 cycles. 15 allows 2-3 rewinds within a ~1 hr budget.
@@ -331,13 +330,15 @@ def _bootstrap_workspace(staging_path: str) -> str:
     for subdir in ("data/raw", "data/processed", "src", "models", "logs"):
         os.makedirs(os.path.join(workspace_dir, subdir), exist_ok=True)
 
-    # git init
+    # git init + set user config (required in containers with no global git config)
+    subprocess.run(["git", "init"], cwd=workspace_dir, capture_output=True, check=False)
     subprocess.run(
-        ["git", "init"],
-        cwd=workspace_dir,
-        capture_output=True,
-        text=True,
-        check=False,
+        ["git", "config", "user.name", "MLE Agent"],
+        cwd=workspace_dir, capture_output=True, check=False,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "agent@mle-bench.local"],
+        cwd=workspace_dir, capture_output=True, check=False,
     )
 
     # uv init (creates pyproject.toml + .venv)
