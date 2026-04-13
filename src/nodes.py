@@ -85,6 +85,38 @@ def _wall_clock_exceeded() -> bool:
     return (time.time() - float(start)) > GRAPH_WALL_CLOCK_TIMEOUT
 
 
+# ── Trace Dump ───────────────────────────────────────────────────────────
+
+_TRACE_PATH = "logs/all_messages.jsonl"
+
+
+def _dump_trace(workspace_dir: str, node_name: str, tool_round: int,
+                iteration_count: int, messages: list[dict]) -> None:
+    """Append the latest messages to a JSONL trace file for mid-run diagnosis.
+
+    Each line is one snapshot: node, round, iteration, elapsed, and the
+    latest assistant+tool exchange. The full file is the complete trace.
+    """
+    if not workspace_dir or workspace_dir == ".":
+        return
+    trace_file = os.path.join(workspace_dir, _TRACE_PATH)
+    os.makedirs(os.path.dirname(trace_file), exist_ok=True)
+    # Write the last 2 messages (assistant response + tool result) as a compact snapshot
+    recent = messages[-2:] if len(messages) >= 2 else messages
+    entry = {
+        "node": node_name,
+        "tool_round": tool_round,
+        "router_iteration": iteration_count,
+        "elapsed_min": round(_elapsed_min(), 1),
+        "messages": recent,
+    }
+    try:
+        with open(trace_file, "a") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+    except Exception:
+        pass  # non-critical — don't crash the pipeline for a log write
+
+
 # ── Message Helpers ──────────────────────────────────────────────────────
 
 
@@ -184,6 +216,11 @@ def _run_react_loop(
                     log.info("[%s]   -> %s", node_name, preview)
             messages.append(tool_result_msg)
             tool_rounds += 1
+            # Dump trace for mid-run diagnosis
+            _dump_trace(
+                workspace_dir, node_name, tool_rounds,
+                state.get("iteration_count", 0), messages,
+            )
             continue
 
         if response.stop_reason == "max_tokens":
@@ -199,6 +236,10 @@ def _run_react_loop(
         log.info(
             "[%s] Done after %d tool rounds [%.1f min]. Handoff: %.120s...",
             node_name, tool_rounds, _elapsed_min(), handoff_message,
+        )
+        _dump_trace(
+            workspace_dir, node_name, tool_rounds,
+            state.get("iteration_count", 0), messages,
         )
         break
     else:
