@@ -5,8 +5,6 @@ based on the `target_model` tier in AgentState.
 See spec_LLM.md for tier definitions.
 """
 
-import os
-
 import anthropic
 
 # Tier name → Anthropic model ID
@@ -25,13 +23,13 @@ MAX_TOKENS: dict[str, int] = {
 
 
 def _get_client() -> anthropic.Anthropic:
-    """Create an Anthropic client using CLAUDE_API_KEY (or ANTHROPIC_API_KEY fallback)."""
-    api_key = os.environ.get("CLAUDE_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError(
-            "No API key found. Set CLAUDE_API_KEY or ANTHROPIC_API_KEY in environment."
-        )
-    return anthropic.Anthropic(api_key=api_key)
+    """Create an Anthropic client using ANTHROPIC_API_KEY from environment.
+
+    The SDK reads ANTHROPIC_API_KEY automatically and raises
+    AuthenticationError if missing. For local dev, uv run auto-loads .env.
+    For CI/Docker, the GitHub secret injects the variable.
+    """
+    return anthropic.Anthropic()
 
 
 def call_llm(
