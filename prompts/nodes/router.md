@@ -46,3 +46,5 @@ Architecture → DataEngineering → ModelEngineering → Evaluation → END
 - Never explain reasoning outside the JSON block
 - No `[BLOCKER]` and current phase complete → route forward
 - Iteration count exceeds maximum → route to `END` regardless of state
+- If ITERATION_COUNT ≥ 7 and Evaluation is not yet complete, route directly to `Evaluator` — time is running out, skip further optimization
+- If ITERATION_COUNT ≥ 7 and Evaluation is complete with no blocker → route to `END` immediately

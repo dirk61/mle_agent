@@ -33,8 +33,9 @@ from src.tools import TOOL_SCHEMAS
 # Maximum tool-call rounds per Action Node invocation
 DEFAULT_RECURSION_LIMIT = 50
 
-# Maximum Router transitions before forcing END
-MAX_ITERATIONS = 25
+# Maximum Router transitions before forcing END.
+# Happy path = ~5 cycles. 10 allows 1-2 rewinds within a 30-45 min budget.
+MAX_ITERATIONS = 10
 
 # Where competition workspaces are created
 WORKSPACE_ROOT = os.environ.get("WORKSPACE_ROOT", "/tmp/mle_agent_workspaces")
