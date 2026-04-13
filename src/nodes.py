@@ -34,8 +34,8 @@ from src.tools import TOOL_SCHEMAS
 DEFAULT_RECURSION_LIMIT = 50
 
 # Maximum Router transitions before forcing END.
-# Happy path = ~5 cycles. 10 allows 1-2 rewinds within a 30-45 min budget.
-MAX_ITERATIONS = 10
+# Happy path = ~5 cycles. 15 allows 2-3 rewinds within a ~1 hr budget.
+MAX_ITERATIONS = 15
 
 # Where competition workspaces are created
 WORKSPACE_ROOT = os.environ.get("WORKSPACE_ROOT", "/tmp/mle_agent_workspaces")
@@ -250,7 +250,11 @@ def system_architect_node(state: AgentState) -> dict:
     if first_entry:
         effective_state["target_model"] = "opus"
 
-    result = _run_react_loop(node_name="System_Architect", state=effective_state)
+    # Architect should finish in ~15-20 tool rounds (EDA + write 3 files + commit).
+    # Cap at 25 to prevent runaway EDA loops.
+    result = _run_react_loop(
+        node_name="System_Architect", state=effective_state, recursion_limit=25,
+    )
     result["workspace_dir"] = workspace_dir
     return result
 
