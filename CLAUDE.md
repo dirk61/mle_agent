@@ -19,6 +19,10 @@ Adhere to standard open-source and dataset licensing.
 Do not modify files outside this root. Update this section if the structure changes.
 
 * `src/agent.py`: MAIN LOGIC — edit freely; extend with new files/dirs as needed.
+* `src/state.py`: LangGraph AgentState TypedDict — edit when adding state fields.
+* `src/llm.py`: Anthropic API wrapper with tiered model dispatch — edit to change model config.
+* `src/tools.py`: Tool implementations + Anthropic tool schemas — edit to add/modify tools.
+* `src/tool_node.py`: Universal_ToolNode (tool call dispatcher) — edit to change dispatch logic.
 * `src/executor.py`: Task lifecycle — edit ONLY if changing task handling.
 * `src/server.py`: Agent metadata — edit ONLY to update agent card.
 * `src/messenger.py`: A2A messaging utility — DO NOT EDIT.

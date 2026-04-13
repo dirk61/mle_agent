@@ -39,6 +39,8 @@ The dictionary passed between nodes contains:
 * `current_phase`: The active phase tracking.
 * `target_model`: Dictated by the Router (e.g., `haiku`, `opus` or `sonnet`). Use `haiku` for routing.
 * `iteration_count`: Integer tracking total Router transitions. Incremented by Router on each invocation. Used as a safety circuit breaker — Router routes to END if this exceeds the configured maximum.
+* `micro_tasks`: Ephemeral micro-task queue managed by `dynamic_task_manager`. Wiped on macro-phase transitions to prevent context bleeding. See `spec_tool.md` §3.
+* `workspace_dir`: Absolute path to the competition workspace directory. Set once during graph initialization and read by all tools.
 
 ---
 
@@ -63,7 +65,7 @@ Tools: `run_bash_with_truncation` | `read_file` | `write_file` | `edit_file_chun
 ### 1. `System_Architect` (The Planner)
 * **Definition:** The strategic core. Translates the competition problem into a concrete ML pipeline and updates the blueprint if fundamental assumptions fail.
 * **Persona:** Lead MLE Architect. Break the project into verifiable submodules.
-* **Tools Access:** Full Global Toolset. May use `run_bash` strictly for *Data Discovery* (not pipeline building).
+* **Tools Access:** Full Global Toolset. May use `run_bash_with_truncation` strictly for *Data Discovery* (not pipeline building).
 * **Edges:** Routes strictly to `Router_Brain`.
 * **On Start:** If no competition workspace exists, bootstrap per `spec_memory.md` §0. Then reads the competition prompt and dataset metadata.
 * **On Exit:** Writes/updates `ml_rules.md`, `ml_spec.md`, and `ml_todo.md`. Passes a `handoff_message` summarizing the strategy.

@@ -85,3 +85,6 @@ This workspace uses `uv` for isolated dependency management. All commands run in
 - **Run scripts** with `uv run python <script.py>` to execute inside the isolated environment.
 - **Never install globally** — do not use bare `pip install` or modify any environment outside this workspace.
 
+## [MANDATORY VERIFICATION] - Toy Data Testing:**
+After finishing or editing any new phase, function, or submodule, you **MUST** write and execute a temporary Python script using minimal dummy data. You must verify dimensional correctness, data types, and logic *before* moving on.
+

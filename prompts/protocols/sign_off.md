@@ -11,7 +11,12 @@ Embed this block verbatim into any Action Node prompt that participates in the s
    Mark completed tasks: change [ ] to [x] for everything finished this shift.
    Do not mark tasks complete that are partially done or blocked.
 
-2. write_file("ml_progress.txt")
+2. Consistency check
+   Skim ml_rules.md. Verify that any I/O paths, column names, or format assumptions
+   in the code you wrote or modified this shift still match the contract.
+   If you spot a drift, fix it now — one wrong path here becomes a zero-score submission later.
+
+3. write_file("ml_progress.txt")
    Overwrite entirely using this exact format:
 
    Current Objective: <what you were working on>
@@ -23,11 +28,11 @@ Embed this block verbatim into any Action Node prompt that participates in the s
    (Omit the Blockers section entirely if there are no blockers.)
    Next Steps: <exact file path or command the next node should start with>
 
-3. run_bash("git add <specific files> && git commit -m '<what changed and why>'")
+4. run_bash("git add <specific files> && git commit -m '<what changed and why>'")
    Commit only relevant files — no accidental staging of data files or secrets.
    Write the commit message in imperative mood: "Add feature engineering pipeline", not "Added..."
 
-4. Emit handoff_message
+5. Emit handoff_message
    One sentence. Tell Router what you accomplished and what state you're leaving things in.
    Example: "Feature arrays written to /data/processed/; validation AUC 0.823 logged to metrics.txt."
 ```
