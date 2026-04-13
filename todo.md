@@ -4,9 +4,9 @@
 > Mark `[x]` and commit after each completed group. Update `progress.txt` at session end.
 
 ## Phase 1: Foundation
-- [ ] Add core dependencies (`langgraph`, `anthropic`). Verify `uv sync --locked`. — Ref: CLAUDE.md §7
-- [ ] Define LangGraph State TypedDict (messages, all_messages, handoff_message, current_phase, target_model, iteration_count) — Ref: spec_state.md §3
-- [ ] Implement LLM client wrapper: Anthropic API call with dynamic model selection from `target_model` — Ref: spec_LLM.md
+- [x] Add core dependencies (`langgraph`, `anthropic`). Verify `uv sync --locked`. — Ref: CLAUDE.md §7
+- [x] Define LangGraph State TypedDict (messages, all_messages, handoff_message, current_phase, target_model, iteration_count) — Ref: spec_state.md §3
+- [x] Implement LLM client wrapper: Anthropic API call with dynamic model selection from `target_model` — Ref: spec_LLM.md
 
 ## Phase 2: Tool Layer
 - [ ] Implement `run_bash_with_truncation` (subprocess, timeout, 8K truncation with first/last 2K preservation) — Ref: spec_tool.md §1

@@ -1,4 +1,4 @@
-Current Objective: Build the mle_agent LangGraph implementation from specs
-Current State: READY — all specs and prompts are finalized, todo.md is populated
+Current Objective: Build Phase 2 — Tool Layer (bash, file tools, task manager, Universal_ToolNode)
+Current State: Phase 1 COMPLETE — langgraph+anthropic deps added, AgentState TypedDict in src/state.py, LLM wrapper in src/llm.py. All verified.
 Blockers: None
-Next Steps: Start Phase 1 of todo.md — add langgraph/anthropic deps and define State TypedDict (Ref: spec_state.md §3)
+Next Steps: Start Phase 2 of todo.md — implement run_bash_with_truncation (Ref: spec_tool.md §1)

@@ -8,6 +8,8 @@ dependencies = [
     "a2a-sdk[http-server]>=0.3.20",
     "uvicorn>=0.38.0",
     "pandas>=2.0.0",
+    "langgraph>=1.1.6",
+    "anthropic>=0.94.0",
 ]
 
 [project.optional-dependencies]
