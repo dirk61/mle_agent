@@ -282,11 +282,17 @@ def _bootstrap_workspace(staging_path: str) -> str:
         check=False,
     )
 
-    # Copy dataset from staging path if available
+    # Copy dataset from staging path if available.
+    # Green agent packages data under home/data/ inside the tar.
     if staging_path and os.path.isdir(staging_path):
+        # Prefer home/data/ subdir if it exists (green agent tar layout)
+        data_src = os.path.join(staging_path, "home", "data")
+        if not os.path.isdir(data_src):
+            data_src = staging_path  # fallback: flat staging dir
+
         raw_dir = os.path.join(workspace_dir, "data", "raw")
-        for item in os.listdir(staging_path):
-            src_path = os.path.join(staging_path, item)
+        for item in os.listdir(data_src):
+            src_path = os.path.join(data_src, item)
             dst_path = os.path.join(raw_dir, item)
             if os.path.isdir(src_path):
                 shutil.copytree(src_path, dst_path, dirs_exist_ok=True)

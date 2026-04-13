@@ -1,4 +1,22 @@
 import argparse
+import os
+import sys
+from pathlib import Path
+
+# Ensure the project root is on sys.path so `from src.xxx import ...` works.
+# uv run src/server.py only adds src/ (the script dir), not the project root.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+# Load .env if it exists (local dev). In Docker/CI env vars are already injected.
+_env_file = _PROJECT_ROOT / ".env"
+if _env_file.is_file():
+    for _line in _env_file.read_text().splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith("#") and "=" in _line:
+            _k, _, _v = _line.partition("=")
+            os.environ.setdefault(_k.strip(), _v.strip())
+
 import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication

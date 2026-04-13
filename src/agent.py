@@ -1,9 +1,11 @@
 import asyncio
 import base64
 import io
+import logging
 import os
 import tarfile
 import tempfile
+import traceback
 from pathlib import Path
 from uuid import uuid4
 
@@ -12,6 +14,8 @@ from a2a.types import FilePart, FileWithBytes, Message, Part, Role, TaskState, T
 from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
+
+log = logging.getLogger("mle_agent")
 
 
 class Agent:
@@ -26,11 +30,13 @@ class Agent:
         Subsequent invocation on the same context: handles validation
         replies from the green agent.
         """
+        log.info("Agent.run() — %d parts", len(message.parts))
+
         # ── Detect validation reply from green agent ─────────────────────
         has_file = any(isinstance(p.root, FilePart) for p in message.parts)
         if not has_file:
             validation_text = get_message_text(message)
-            print(f"[VALIDATION RESULT] {validation_text}", flush=True)
+            log.info("Validation reply: %s", validation_text)
             await updater.update_status(
                 TaskState.working,
                 new_agent_text_message(
@@ -58,8 +64,10 @@ class Agent:
         try:
             with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:gz") as tar:
                 tar_members = [m.name for m in tar.getmembers()]
+                log.info("Tar members (%d): %s", len(tar_members), tar_members[:10])
                 tar.extractall(path=staging_dir, filter="data")
         except Exception as e:
+            log.error("Tar extraction failed: %s", traceback.format_exc())
             await updater.update_status(
                 TaskState.failed,
                 new_agent_text_message(f"Failed to extract competition tar: {e}"),
@@ -68,11 +76,10 @@ class Agent:
 
         # ── Step 2: Extract instructions and detect competition ──────────
         instructions = get_message_text(message) or "No instructions provided."
-        competition_id = _detect_competition_id(instructions, tar_members)
-        print(
-            f"[AGENT] Competition: {competition_id or '(unknown)'} | "
-            f"Staging: {staging_dir} | Tar members: {len(tar_members)}",
-            flush=True,
+        competition_id = _detect_competition_id(instructions, tar_members, staging_dir)
+        log.info(
+            "Competition: %s | Staging: %s",
+            competition_id or "(unknown)", staging_dir,
         )
 
         # ── Step 3: Build graph and initial state ────────────────────────
@@ -102,7 +109,20 @@ class Agent:
         # ── Step 4: Run the graph ────────────────────────────────────────
         # Graph nodes are synchronous — run in a thread to avoid blocking
         # the async event loop.
-        final_state = await asyncio.to_thread(app.invoke, initial_state)
+        log.info("Invoking graph...")
+        try:
+            final_state = await asyncio.to_thread(app.invoke, initial_state)
+        except Exception as e:
+            log.error("Graph invocation failed:\n%s", traceback.format_exc())
+            await updater.update_status(
+                TaskState.failed,
+                new_agent_text_message(f"Pipeline failed: {e}"),
+            )
+            return
+        log.info(
+            "Graph finished. workspace_dir=%s",
+            final_state.get("workspace_dir", ""),
+        )
 
         # ── Step 5: Read submission and submit ───────────────────────────
         workspace_dir = final_state.get("workspace_dir", "")
@@ -120,11 +140,7 @@ class Agent:
             return
 
         csv_bytes = Path(submission_path).read_bytes()
-        print(
-            f"[AGENT] Submission ready: {submission_path} "
-            f"({len(csv_bytes)} bytes)",
-            flush=True,
-        )
+        log.info("Submission ready: %s (%d bytes)", submission_path, len(csv_bytes))
 
         # ── Step 6: Validate with green agent ────────────────────────────
         await updater.update_status(
@@ -182,13 +198,14 @@ def _extract_tar_bytes(message: Message) -> bytes | None:
     return None
 
 
-def _detect_competition_id(instructions: str, tar_members: list[str]) -> str:
+def _detect_competition_id(
+    instructions: str, tar_members: list[str], staging_dir: str = ""
+) -> str:
     """Best-effort competition_id detection.
 
-    Tries: (1) directory prefix in tar members matching a known competition,
-    then (2) known competition slug appearing in instructions text.
-    Returns empty string if no match found — medal targets will show
-    'not available', which is a graceful degradation.
+    Tries: (1) directory prefix in tar members, (2) description.md content
+    from extracted tar, (3) instructions text.
+    Returns empty string if no match — graceful degradation.
     """
     from src.medal_thresholds import MEDAL_THRESHOLDS
 
@@ -198,7 +215,19 @@ def _detect_competition_id(instructions: str, tar_members: list[str]) -> str:
         if len(parts) > 1 and parts[0] in MEDAL_THRESHOLDS:
             return parts[0]
 
-    # Strategy 2: match known IDs in instructions (longest first to avoid
+    # Strategy 2: check description.md from extracted tar
+    if staging_dir:
+        desc_path = os.path.join(staging_dir, "home", "data", "description.md")
+        if os.path.isfile(desc_path):
+            try:
+                desc_text = Path(desc_path).read_text(errors="ignore").lower()
+                for comp_id in sorted(MEDAL_THRESHOLDS, key=len, reverse=True):
+                    if comp_id in desc_text:
+                        return comp_id
+            except Exception:
+                pass
+
+    # Strategy 3: match known IDs in instructions (longest first to avoid
     # partial matches like "ai" matching before "ai4code")
     instructions_lower = instructions.lower()
     for comp_id in sorted(MEDAL_THRESHOLDS, key=len, reverse=True):
