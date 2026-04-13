@@ -152,7 +152,11 @@ class Agent:
             return
 
         csv_bytes = Path(submission_path).read_bytes()
-        log.info("Submission ready: %s (%d bytes)", submission_path, len(csv_bytes))
+        from src.nodes import _elapsed_min
+        log.info(
+            "Submission ready: %s (%d bytes) | Total pipeline time: %.1f min",
+            submission_path, len(csv_bytes), _elapsed_min(),
+        )
 
         # ── Step 6: Validate with green agent ────────────────────────────
         await updater.update_status(
