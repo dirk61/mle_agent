@@ -113,3 +113,41 @@ def _dispatch(
         )
 
     return f"[ERROR: Unknown tool '{name}']"
+
+
+def dispatch_tool_calls(
+    assistant_msg: dict,
+    workspace_dir: str,
+    micro_tasks: list[dict],
+) -> tuple[dict, list[dict]]:
+    """Execute tool_use blocks from an assistant message dict.
+
+    Lighter-weight entry point used by the internal ReAct loop
+    in Action Nodes. Reuses _dispatch() for actual tool execution.
+
+    Returns:
+        (tool_result_message, updated_micro_tasks) tuple.
+    """
+    tool_results: list[dict] = []
+    updated_tasks = micro_tasks
+
+    for block in assistant_msg["content"]:
+        if block["type"] != "tool_use":
+            continue
+
+        name = block["name"]
+        inp = block["input"]
+        tool_use_id = block["id"]
+
+        result = _dispatch(name, inp, workspace_dir, updated_tasks)
+
+        if name == "dynamic_task_manager" and isinstance(result, tuple):
+            result_text, updated_tasks = result
+        else:
+            result_text = result
+
+        tool_results.append(
+            {"type": "tool_result", "tool_use_id": tool_use_id, "content": result_text}
+        )
+
+    return {"role": "user", "content": tool_results}, updated_tasks

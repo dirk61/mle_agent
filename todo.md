@@ -21,9 +21,9 @@
 - [x] Implement Router input block assembly: read `ml_progress.txt` from workspace, format structured block (CURRENT_PHASE, HANDOFF_MESSAGE, PROGRESS_EXCERPT, AVAILABLE_NODES, ITERATION_COUNT) — Ref: spec_prompting.md → Router Decision Interface
 
 ## Phase 4: Node Implementation
-- [ ] Implement Action Node wrapper: ReAct loop (LLM call → tool calls? → ToolNode : exit), `recursion_limit`, capture final LLM text as `handoff_message` — Ref: spec_state.md → Nodes 3-5, Graph Lifecycle
-- [ ] Implement System_Architect node: workspace bootstrap (mkdir, git init, uv init), first-entry vs. re-entry — Ref: spec_state.md → Node 1, spec_memory.md §0
-- [ ] Implement Router_Brain node: append+wipe messages, increment iteration_count, call Haiku with assembled input, parse JSON output, set state fields, enforce iteration budget — Ref: spec_state.md → Node 2
+- [x] Implement Action Node wrapper: ReAct loop (LLM call → tool calls? → ToolNode : exit), `recursion_limit`, capture final LLM text as `handoff_message` — Ref: spec_state.md → Nodes 3-5, Graph Lifecycle
+- [x] Implement System_Architect node: workspace bootstrap (mkdir, git init, uv init), first-entry vs. re-entry — Ref: spec_state.md → Node 1, spec_memory.md §0
+- [x] Implement Router_Brain node: append+wipe messages, increment iteration_count, call Haiku with assembled input, parse JSON output, set state fields, enforce iteration budget — Ref: spec_state.md → Node 2
 
 ## Phase 5: Graph Construction & A2A Integration
 - [ ] Build LangGraph StateGraph: register nodes, define conditional edges (Action↔ToolNode loop, Action→Router, Router→dispatch by next_node, END) — Ref: spec_state.md → Node Definitions (edges)
