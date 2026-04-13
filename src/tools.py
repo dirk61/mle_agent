@@ -68,12 +68,17 @@ def run_bash_with_truncation(
             # Keep last 2K chars so the agent can see what happened
             if len(partial) > 2000:
                 partial = "...\n" + partial[-2000:]
+        _persist_bash_output(workspace_dir, command, partial, -1)
         return f"[ERROR: Command timed out after {timeout_seconds}s]\n{partial}"
     except Exception as e:
         return f"[ERROR: Failed to execute command]\n{e}"
 
     output = result.stdout or ""
     exit_code = result.returncode
+
+    # Persist all command output to a log file that survives context wipes.
+    # Any future node can read_file("logs/bash_history.log") to see past output.
+    _persist_bash_output(workspace_dir, command, output, exit_code)
 
     # Truncate if combined output exceeds limit
     if len(output) > MAX_OUTPUT_CHARS:
@@ -87,6 +92,26 @@ def run_bash_with_truncation(
         return f"[ERROR: Command failed with exit code {exit_code}]\n{output}"
 
     return output
+
+
+def _persist_bash_output(workspace_dir: str, command: str, output: str, exit_code: int) -> None:
+    """Append command output to logs/bash_history.log for cross-session persistence."""
+    try:
+        log_dir = os.path.join(workspace_dir, "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        with open(os.path.join(log_dir, "bash_history.log"), "a") as f:
+            f.write(f"\n{'='*60}\n")
+            f.write(f"$ {command}\n")
+            f.write(f"exit_code={exit_code}\n")
+            f.write(f"{'='*60}\n")
+            # Keep last 3K chars of output — enough for training summaries
+            if len(output) > 3000:
+                f.write("...[truncated]...\n" + output[-3000:])
+            else:
+                f.write(output)
+            f.write("\n")
+    except Exception:
+        pass  # non-critical
 
 
 # ── 2. File Operations ───────────────────────────────────────────────────────
