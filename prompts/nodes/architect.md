@@ -38,7 +38,7 @@ During data discovery, check compute resources, install core ML packages, and fi
 - Run `nproc` for CPU count, `free -h` for RAM, `df -h .` for disk space
 - **Install core packages now** so downstream nodes don't waste time on dependency issues:
   - Always: `uv add pandas numpy scikit-learn lightgbm xgboost`
-  - If GPU found: install CUDA-enabled torch matching the driver's CUDA version (e.g., for CUDA 12.x: `uv add torch torchvision --index-url https://download.pytorch.org/whl/cu121`). Verify with `uv run python -c "import torch; print(torch.cuda.is_available())"`. If install fails, try a different CUDA version or fall back to CPU torch.
+  - If GPU found: install CUDA-enabled torch using `--extra-index-url https://download.pytorch.org/whl/cu121 --index-strategy unsafe-best-match` (match CUDA version to `nvidia-smi | grep "CUDA Version"`). Verify `torch.cuda.is_available()` is True before declaring GPU ready.
   - If no GPU: `uv add torch torchvision` (CPU build) only if the problem requires deep learning
 - **Never use `torch.cuda.is_available()` for GPU detection** — use `nvidia-smi` first, then install torch, then verify.
 
