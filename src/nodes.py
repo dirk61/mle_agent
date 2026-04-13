@@ -39,7 +39,7 @@ DEFAULT_RECURSION_LIMIT = 35
 # Wall-clock timeout for the entire graph run (seconds).
 # Safety net — prevents unbounded token burn on external platforms.
 # Ideal ~1hr, typical ~1.5hr, hard cap 2hr. Only triggers in edge cases.
-GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 7200))
+GRAPH_WALL_CLOCK_TIMEOUT = int(os.environ.get("MLE_AGENT_TIMEOUT", 14400))
 
 # Maximum Router transitions before forcing END.
 # Happy path = ~5 cycles. 15 allows 2-3 rewinds within a ~1 hr budget.
@@ -284,13 +284,18 @@ def _run_react_loop(
                 node_name, tool_rounds + 1, recursion_limit,
                 tool_names, bash_timeouts or "", _elapsed_min(),
             )
+            # Log the command being run so it's visible externally
+            for b in tool_calls:
+                if b["name"] == "run_bash_with_truncation":
+                    cmd = str(b["input"].get("command", "")).replace("\n", " ; ")[:200]
+                    log.info("[%s]   cmd: %s", node_name, cmd)
             tool_result_msg, micro_tasks = dispatch_tool_calls(
                 assistant_msg, workspace_dir, micro_tasks
             )
-            # Log brief preview of tool results
+            # Log preview of tool results
             for block in tool_result_msg.get("content", []):
                 if isinstance(block, dict) and "content" in block:
-                    preview = str(block["content"])[:150].replace("\n", " ")
+                    preview = str(block["content"])[:500].replace("\n", " | ")
                     log.info("[%s]   -> %s", node_name, preview)
             messages.append(tool_result_msg)
             tool_rounds += 1
@@ -312,7 +317,7 @@ def _run_react_loop(
         # end_turn or other — LLM is done
         handoff_message = _extract_text(response)
         log.info(
-            "[%s] Done after %d tool rounds [%.1f min]. Handoff: %.120s...",
+            "[%s] Done after %d tool rounds [%.1f min]. Handoff: %.300s",
             node_name, tool_rounds, _elapsed_min(), handoff_message,
         )
         _dump_trace(
