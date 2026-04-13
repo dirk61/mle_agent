@@ -16,3 +16,6 @@ wheels/
 # Agent Memory Files
 # progress.txt
 # todo.md
+
+# Strategy / research notes (local only)
+competition_strategy.md
