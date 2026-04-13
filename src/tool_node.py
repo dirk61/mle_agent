@@ -77,7 +77,7 @@ def _dispatch(
     if name == "run_bash_with_truncation":
         return run_bash_with_truncation(
             command=inp["command"],
-            timeout_seconds=inp.get("timeout_seconds", 120),
+            timeout_seconds=inp.get("timeout_seconds", 1800),
             workspace_dir=workspace_dir,
         )
 
