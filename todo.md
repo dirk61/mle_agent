@@ -26,8 +26,8 @@
 - [x] Implement Router_Brain node: append+wipe messages, increment iteration_count, call Haiku with assembled input, parse JSON output, set state fields, enforce iteration budget — Ref: spec_state.md → Node 2
 
 ## Phase 5: Graph Construction & A2A Integration
-- [ ] Build LangGraph StateGraph: register nodes, define conditional edges (Action↔ToolNode loop, Action→Router, Router→dispatch by next_node, END) — Ref: spec_state.md → Node Definitions (edges)
-- [ ] Rewrite `Agent.run()`: extract competition tar, init graph state (instructions→messages, dataset path→handoff_message), invoke graph, on END read `submission.csv` and submit A2A artifact — Ref: spec_state.md → Graph Lifecycle, CLAUDE.md §2
+- [x] Build LangGraph StateGraph: register nodes, define conditional edges (Action↔ToolNode loop, Action→Router, Router→dispatch by next_node, END) — Ref: spec_state.md → Node Definitions (edges)
+- [x] Rewrite `Agent.run()`: extract competition tar, init graph state (instructions→messages, dataset path→handoff_message), invoke graph, on END read `submission.csv` and submit A2A artifact — Ref: spec_state.md → Graph Lifecycle, CLAUDE.md §2
 
 ## Phase 6: Build & End-to-End Test
 - [ ] Verify Docker build: `uv sync --locked`, image builds with prompts included — Ref: CLAUDE.md §7

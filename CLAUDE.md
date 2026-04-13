@@ -25,6 +25,7 @@ Do not modify files outside this root. Update this section if the structure chan
 * `src/tool_node.py`: Universal_ToolNode (tool call dispatcher) — edit to change dispatch logic.
 * `src/medal_thresholds.py`: Static lookup table — competition_id to medal score thresholds (gold/silver/bronze/median). DO NOT regenerate from leaderboard data at runtime.
 * `src/nodes.py`: LangGraph node implementations — Action Node wrapper (ReAct loop), System_Architect, Router_Brain.
+* `src/graph.py`: LangGraph StateGraph construction — registers nodes, wires edges, compiles the graph.
 * `src/prompts.py`: Prompt loader + assembly (system prompts and Router input blocks).
 * `src/executor.py`: Task lifecycle — edit ONLY if changing task handling.
 * `src/server.py`: Agent metadata — edit ONLY to update agent card.

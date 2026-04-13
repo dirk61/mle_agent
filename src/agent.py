@@ -1,99 +1,132 @@
+import asyncio
 import base64
 import io
+import os
 import tarfile
+import tempfile
 from pathlib import Path
 from uuid import uuid4
 
-import pandas as pd
 from a2a.server.tasks import TaskUpdater
 from a2a.types import FilePart, FileWithBytes, Message, Part, Role, TaskState, TextPart
 from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
 
-SUBMISSION_DIR = Path("/tmp/mle_agent_submissions")
-
 
 class Agent:
     def __init__(self):
         self.messenger = Messenger()
-        # Initialize other state here
 
     async def run(self, message: Message, updater: TaskUpdater) -> None:
-        """Implement your agent logic here.
+        """Main agent entry point.
 
-        Args:
-            message: The incoming message
-            updater: Report progress (update_status) and results (add_artifact)
-
-        Use self.messenger.talk_to_agent(message, url) to call other agents.
+        First invocation: receives competition data (tar + instructions),
+        runs the LangGraph pipeline, and submits the result.
+        Subsequent invocation on the same context: handles validation
+        replies from the green agent.
         """
-        # ── Detect if this is a validation reply from the green agent ──────────
-        # The green agent sends back a plain-text Message (no FilePart) after we
-        # request validation. We just log it and return — the executor will have
-        # already stored this text so the outer run() that sent the validate
-        # status update can read it via the next incoming message.
+        # ── Detect validation reply from green agent ─────────────────────
         has_file = any(isinstance(p.root, FilePart) for p in message.parts)
         if not has_file:
             validation_text = get_message_text(message)
             print(f"[VALIDATION RESULT] {validation_text}", flush=True)
             await updater.update_status(
                 TaskState.working,
-                new_agent_text_message(f"Validation response received: {validation_text}")
+                new_agent_text_message(
+                    f"Validation response received: {validation_text}"
+                ),
             )
             return
 
-        # ── Step 1: Extract competition.tar.gz ─────────────────────────────────
-        await updater.update_status(
-            TaskState.working, new_agent_text_message("Extracting competition data...")
-        )
-
-        tar_bytes = None
-        for part in message.parts:
-            if isinstance(part.root, FilePart):
-                file_data = part.root.file
-                if isinstance(file_data, FileWithBytes):
-                    tar_bytes = base64.b64decode(file_data.bytes)
-                    break
-
-        if tar_bytes is None:
-            await updater.update_status(
-                TaskState.failed, new_agent_text_message("No competition tar file found in message.")
-            )
-            return
-
-        # ── Step 2: Unpack tar and read test.csv ───────────────────────────────
-        with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:gz") as tar:
-            test_member = next(
-                (m for m in tar.getmembers() if m.name.endswith("test.csv")), None
-            )
-            if test_member is None:
-                await updater.update_status(
-                    TaskState.failed, new_agent_text_message("test.csv not found in competition tar.")
-                )
-                return
-            test_csv_bytes = tar.extractfile(test_member).read()
-
-        test_df = pd.read_csv(io.BytesIO(test_csv_bytes))
-
-        # ── Step 3: Build dummy submission (all-False) ─────────────────────────
-        # Format: PassengerId (str), Transported (bool as Python bool → "False"/"True")
-        submission = pd.DataFrame({
-            "PassengerId": test_df["PassengerId"],
-            "Transported": False,
-        })
-
-        # ── Step 4: Save submission.csv locally ───────────────────────────────
-        SUBMISSION_DIR.mkdir(parents=True, exist_ok=True)
-        local_path = SUBMISSION_DIR / "submission.csv"
-        submission.to_csv(local_path, index=False)
+        # ── Step 1: Extract competition tar to staging directory ─────────
         await updater.update_status(
             TaskState.working,
-            new_agent_text_message(f"Saved submission locally to {local_path} ({len(submission)} rows)")
+            new_agent_text_message("Extracting competition data..."),
         )
 
-        # ── Step 5: Validate submission format with the green agent ────────────
-        csv_bytes = local_path.read_bytes()
+        tar_bytes = _extract_tar_bytes(message)
+        if tar_bytes is None:
+            await updater.update_status(
+                TaskState.failed,
+                new_agent_text_message("No competition tar file found in message."),
+            )
+            return
+
+        staging_dir = tempfile.mkdtemp(prefix="mle_staging_")
+        tar_members: list[str] = []
+        try:
+            with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:gz") as tar:
+                tar_members = [m.name for m in tar.getmembers()]
+                tar.extractall(path=staging_dir, filter="data")
+        except Exception as e:
+            await updater.update_status(
+                TaskState.failed,
+                new_agent_text_message(f"Failed to extract competition tar: {e}"),
+            )
+            return
+
+        # ── Step 2: Extract instructions and detect competition ──────────
+        instructions = get_message_text(message) or "No instructions provided."
+        competition_id = _detect_competition_id(instructions, tar_members)
+        print(
+            f"[AGENT] Competition: {competition_id or '(unknown)'} | "
+            f"Staging: {staging_dir} | Tar members: {len(tar_members)}",
+            flush=True,
+        )
+
+        # ── Step 3: Build graph and initial state ────────────────────────
+        await updater.update_status(
+            TaskState.working,
+            new_agent_text_message(
+                f"Starting ML pipeline (competition: {competition_id or 'unknown'})..."
+            ),
+        )
+
+        from src.graph import build_graph
+
+        app = build_graph()
+
+        initial_state = {
+            "messages": [{"role": "user", "content": instructions}],
+            "all_messages": [],
+            "handoff_message": staging_dir,
+            "current_phase": "architecture",
+            "target_model": "opus",
+            "iteration_count": 0,
+            "micro_tasks": [],
+            "workspace_dir": "",
+            "competition_id": competition_id,
+        }
+
+        # ── Step 4: Run the graph ────────────────────────────────────────
+        # Graph nodes are synchronous — run in a thread to avoid blocking
+        # the async event loop.
+        final_state = await asyncio.to_thread(app.invoke, initial_state)
+
+        # ── Step 5: Read submission and submit ───────────────────────────
+        workspace_dir = final_state.get("workspace_dir", "")
+        submission_path = (
+            os.path.join(workspace_dir, "submission.csv") if workspace_dir else ""
+        )
+
+        if not submission_path or not os.path.isfile(submission_path):
+            await updater.update_status(
+                TaskState.failed,
+                new_agent_text_message(
+                    "Pipeline completed but no submission.csv found."
+                ),
+            )
+            return
+
+        csv_bytes = Path(submission_path).read_bytes()
+        print(
+            f"[AGENT] Submission ready: {submission_path} "
+            f"({len(csv_bytes)} bytes)",
+            flush=True,
+        )
+
+        # ── Step 6: Validate with green agent ────────────────────────────
         await updater.update_status(
             TaskState.working,
             message=Message(
@@ -101,32 +134,75 @@ class Agent:
                 role=Role.agent,
                 parts=[
                     Part(root=TextPart(text="validate")),
-                    Part(root=FilePart(
+                    Part(
+                        root=FilePart(
+                            file=FileWithBytes(
+                                bytes=base64.b64encode(csv_bytes).decode("ascii"),
+                                name="submission.csv",
+                                mime_type="text/csv",
+                            )
+                        )
+                    ),
+                ],
+                message_id=uuid4().hex,
+            ),
+        )
+
+        # ── Step 7: Submit final artifact ────────────────────────────────
+        await updater.update_status(
+            TaskState.working,
+            new_agent_text_message("Submitting final submission..."),
+        )
+        await updater.add_artifact(
+            parts=[
+                Part(
+                    root=FilePart(
                         file=FileWithBytes(
                             bytes=base64.b64encode(csv_bytes).decode("ascii"),
                             name="submission.csv",
                             mime_type="text/csv",
                         )
-                    )),
-                ],
-                message_id=uuid4().hex,
-            )
-        )
-        # Green agent will reply with a new Message on the same context_id,
-        # which re-enters run() above and logs the validation result text.
-
-        # ── Step 6: Submit final artifact ──────────────────────────────────────
-        await updater.update_status(
-            TaskState.working,
-            new_agent_text_message(f"Submitting final submission ({len(submission)} rows)...")
-        )
-        await updater.add_artifact(
-            parts=[Part(root=FilePart(
-                file=FileWithBytes(
-                    bytes=base64.b64encode(csv_bytes).decode("ascii"),
-                    name="submission.csv",
-                    mime_type="text/csv",
+                    )
                 )
-            ))],
+            ],
             name="submission",
         )
+
+
+# ── Helpers (module-level, not on the class) ─────────────────────────────
+
+
+def _extract_tar_bytes(message: Message) -> bytes | None:
+    """Extract the first FilePart's bytes from an A2A message."""
+    for part in message.parts:
+        if isinstance(part.root, FilePart):
+            file_data = part.root.file
+            if isinstance(file_data, FileWithBytes):
+                return base64.b64decode(file_data.bytes)
+    return None
+
+
+def _detect_competition_id(instructions: str, tar_members: list[str]) -> str:
+    """Best-effort competition_id detection.
+
+    Tries: (1) directory prefix in tar members matching a known competition,
+    then (2) known competition slug appearing in instructions text.
+    Returns empty string if no match found — medal targets will show
+    'not available', which is a graceful degradation.
+    """
+    from src.medal_thresholds import MEDAL_THRESHOLDS
+
+    # Strategy 1: tar directory prefix
+    for member in tar_members:
+        parts = member.split("/")
+        if len(parts) > 1 and parts[0] in MEDAL_THRESHOLDS:
+            return parts[0]
+
+    # Strategy 2: match known IDs in instructions (longest first to avoid
+    # partial matches like "ai" matching before "ai4code")
+    instructions_lower = instructions.lower()
+    for comp_id in sorted(MEDAL_THRESHOLDS, key=len, reverse=True):
+        if comp_id in instructions_lower:
+            return comp_id
+
+    return ""
