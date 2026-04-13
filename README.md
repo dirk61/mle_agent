@@ -148,14 +148,14 @@ mle_agent/
 
 ---
 
-## Results
+<!--## Results
 
-| Competition | Category | Score | Gold threshold | Medal | Run time |
+| Competition | Category | Score | Gold threshold | Medal 
 |---|---|---|---|---|---|
-| spaceship-titanic | Tabular classification | 0.799 | 0.821 | Above median | ~67 min |
-| aerial-cactus-identification | Image classification | 0.9989 | 0.9990 | 🥈 Silver | ~19 min |
+| spaceship-titanic | Tabular classification | 0.799 | 0.821 | Above median 
+| aerial-cactus-identification | Image classification | 0.99995	 | 1.000 | Above median 
 
-*Benchmarking ongoing across competition categories and difficulty levels. Per-fold CV breakdowns and training traces are in each workspace's `logs/` directory.*
+*Benchmarking ongoing across competition categories and difficulty levels. Per-fold CV breakdowns and training traces are in each workspace's `logs/` directory.*-->
 
 ---
 
@@ -169,12 +169,5 @@ Tree-search approaches win by sampling many independent solutions and keeping th
 
 LangGraph state is wiped by the Router on each phase transition — intentionally. Keeping 50 tool rounds of model training conversation in context when the Evaluator just needs to check a CSV format is wasteful and noisy. Files are the shared medium: `ml_progress.txt` is a 10-line handover note, not a transcript. `ml_todo.md` tells the next agent exactly what's done. `git log` is an immutable audit trail. Any agent can re-orient from scratch in 3 tool calls.
 
-### Why tiered model dispatch?
 
-- **Opus** for architecture: a bad spec cascades into every downstream node. One wrong design decision costs more in rewinds than Opus costs per call.
-- **Sonnet** for execution: writing and debugging code is Sonnet's strength. Long ReAct loops with Haiku would produce worse code requiring more debug rounds.
-- **Haiku** for routing and evaluation: JSON routing decisions and CSV format checks don't require strong reasoning. Haiku handles both reliably at a fraction of the cost.
 
-### Why CV-primary, plateau-based stopping?
-
-A single holdout split has ±1-2% variance. Optimizing Optuna against the same holdout for 100 trials fits that split's noise, not the signal — we observed this directly: validation 0.824 → test 0.799 (2.5% gap). The fix: CV as the primary signal, stop when `|Δ| / |best| < 0.3%` for two consecutive attempts. This threshold maps to the noise floor of 5-fold CV and is metric-agnostic.

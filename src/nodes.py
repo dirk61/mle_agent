@@ -411,7 +411,8 @@ def system_architect_node(state: AgentState) -> dict:
 
     if first_entry:
         staging_path = state.get("handoff_message", "")
-        workspace_dir = _bootstrap_workspace(staging_path)
+        competition_id = state.get("competition_id", "") or "competition"
+        workspace_dir = _bootstrap_workspace(staging_path, competition_id)
 
         # Annotate the first user message with workspace info only
         bootstrap_note = (
@@ -456,7 +457,7 @@ def system_architect_node(state: AgentState) -> dict:
     return result
 
 
-def _bootstrap_workspace(staging_path: str) -> str:
+def _bootstrap_workspace(staging_path: str, competition_id: str = "competition") -> str:
     """Create and initialize a competition workspace.
 
     Creates directory structure per spec_memory.md section 0,
@@ -466,7 +467,8 @@ def _bootstrap_workspace(staging_path: str) -> str:
     Returns absolute path to the new workspace directory.
     """
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    workspace_name = f"competition_{timestamp}"
+    safe_id = competition_id.replace("/", "_").replace(" ", "_")
+    workspace_name = f"{safe_id}_{timestamp}"
     workspace_dir = os.path.join(WORKSPACE_ROOT, workspace_name)
 
     # Create workspace directory structure

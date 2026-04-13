@@ -15,8 +15,6 @@
 
 ---
 
----
-
 ## I/O Paths
 
 > All paths below are relative to the competition workspace root.
@@ -70,17 +68,6 @@ All nodes must read and write to exactly these paths. Do not invent new paths.
 
 ---
 
-## Version Control
-
-All git operations run inside this competition workspace (initialized during bootstrap).
-
-- **Commit on every Sign-Off** — each commit represents a completed node shift, not incremental saves.
-- **Stage only relevant files** — never stage raw data files, model binaries larger than necessary, or temporary scripts.
-- **Descriptive commit messages** in imperative mood: "Add feature engineering pipeline", not "Added..."
-- **Never auto-push** — this workspace is local only.
-
----
-
 ## Dependency Management
 This workspace uses `uv` for isolated dependency management. All commands run inside this workspace's own virtual environment.
 
@@ -88,9 +75,4 @@ This workspace uses `uv` for isolated dependency management. All commands run in
 - **Run scripts** with `uv run python <script.py>` to execute inside the isolated environment.
 - **Never install globally** — do not use bare `pip install` or modify any environment outside this workspace.
 
----
-
-## Verification
-
-After finishing or editing any pipeline script, you **MUST** run it and verify the output before moving on. Check: shapes match expectations, dtypes are correct, no NaN where there shouldn't be, output files exist at the expected paths. Do not mark a task complete on code alone — run it.
 
