@@ -51,6 +51,8 @@ jobs:
           echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > .env
           docker run -d -p 9010:9010 --name agent-container --env-file .env $(echo "${{ steps.meta.outputs.tags }}" | head -n1) --host 0.0.0.0 --port 9010
           timeout 30 bash -c 'until curl -sf http://localhost:9010/.well-known/agent-card.json > /dev/null; do sleep 1; done'
+          # Stream agent logs live into Actions output (background, exits when container stops)
+          docker logs -f agent-container &
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v4

@@ -269,10 +269,17 @@ def _run_react_loop(
         messages.append(assistant_msg)
 
         if response.stop_reason == "tool_use":
-            tool_names = [b["name"] for b in assistant_msg["content"] if b.get("type") == "tool_use"]
+            tool_calls = [b for b in assistant_msg["content"] if b.get("type") == "tool_use"]
+            tool_names = [b["name"] for b in tool_calls]
+            # Show timeout for bash calls so it's visible in logs
+            bash_timeouts = [
+                f"bash(timeout={b['input'].get('timeout_seconds', 300)}s)"
+                for b in tool_calls if b["name"] == "run_bash_with_truncation"
+            ]
             log.info(
-                "[%s] Tool round %d/%d: %s [%.1f min]",
-                node_name, tool_rounds + 1, recursion_limit, tool_names, _elapsed_min(),
+                "[%s] Tool round %d/%d: %s %s [%.1f min]",
+                node_name, tool_rounds + 1, recursion_limit,
+                tool_names, bash_timeouts or "", _elapsed_min(),
             )
             tool_result_msg, micro_tasks = dispatch_tool_calls(
                 assistant_msg, workspace_dir, micro_tasks
