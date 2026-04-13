@@ -1,8 +1,5 @@
 # MLE Agent
-
-## TL;DR
-
-MLE Agent approaches each ML problem EXACTLY the way a real [MLE] (team) would: an Architect reads the problem and designs the pipeline, a Data Engineer builds the features, a Model Engineer trains and iterates, and an Evaluator does sanity checks on the final submission. Each specialist is equipped with sandboxed tools and carries domain-specific ML instincts without assuming fixed solutions — the pipeline adapts to the problem. Above all, a manager (router) coordinates — deciding who's next to work, assigning time and cost budget (Opus vs Sonnet vs Haiku), and pushing back to prior stages if the team is on a wrong route (triggering rewinds). All coordinated through a LangGraph cyclic graph that enables dynamic phase transitions.
+This Agent approaches each ML problem EXACTLY the way a real [MLE] (team) would: an Architect reads the problem and designs the pipeline, a Data Engineer builds the features, a Model Engineer trains and iterates, and an Evaluator does sanity checks on the final submission. Each specialist is equipped with sandboxed tools and carries domain-specific ML instincts without assuming fixed solutions — the pipeline adapts to the problem. Above all, a manager (router) coordinates — deciding who's next to work, assigning time and cost budget (Opus vs Sonnet vs Haiku), and pushing back to prior stages if the team is on a wrong route (triggering rewinds). All coordinated through a LangGraph cyclic graph that enables dynamic phase transitions.
 
 The core design challenge mirrors how real [MLE] teams stay aligned across long projects: every agent writes its work to disk — cross-referenced architectural blueprints, task checklists, progress handovers, execution logs — in a git-versioned workspace any agent can audit on re-entry. When the context window compacts between phases, agents re-orient from persistent memory hierarchy rather than losing context. This makes the system robust on complex, multi-phase problems that need long runs. 
 
@@ -10,14 +7,18 @@ Cost-performance balance is a first-class concern: hard iteration caps and promp
 
 We evaluated across a diverse set of competitions spanning differnt categories and difficulties, showing competitive scores and validating the robustness of this agent design.
 
+
+
 ---
 
 ## Results
 
+mle_bench leaderboard https://agentbeats.dev/agentbeater/mle-bench
+
 | Competition | Category | Difficulty | Score | Gold | Medal |
 |---|---|---|---|---|---|
-| spaceship-titanic | Tabular classification | 🟩 | 0.83218 | 0.821 | Gold 🥇 |
-| aerial-cactus-identification | Image classification | 🟩 | 1.000 | 1.000 | Above median |
+| spaceship-titanic | Tabular | 🟩 | 0.83218 | 0.821 | Gold 🥇 |
+| aerial-cactus-identification | Image Classification | 🟩 | 1.000 | 1.000 | Above median |
 
 🟩 Easy.    🟨 Medium.    🟥 Difficult. 
 
@@ -77,50 +78,49 @@ Benchmarking **STILL ONGOING** across competition categories and difficulty leve
 
 ### Toolset
 
-All Action Nodes (Architect, Data Engineer, Model Engineer, Evaluator) share a focused set of sandboxed tools:
+All agents (except Router) can run bash commands, read/write files, and edit code. Here's what they have:
 
-| Tool | Description |
+| Tool | What it does |
 |---|---|
-| `run_bash_with_truncation` | Execute shell commands — run scripts, install packages (`uv add`), inspect data. Output truncated to 8K chars with first/last 2K preserved. 30-min timeout. |
-| `read_file` | Read workspace files — code, logs, memory files. Never used on raw data CSVs directly. |
-| `write_file` | Create or overwrite files — new pipeline scripts, configs, memory files. |
-| `edit_file_chunk` | Surgical find-and-replace on existing files. Must match exactly once — preferred over rewriting whole files. |
-| `dynamic_task_manager` | Ephemeral micro-task queue (push / pop / complete / list) for tracking sub-steps within a node. Wiped on each Router transition. |
+| **bash** | Run commands: train scripts, install packages, check data shapes. Output limited to 8K chars. LLM-defined timeout window. |
+| **read_file** | Read code, logs, memory files. Not used on raw data files. |
+| **write_file** | Create new Python scripts, configs, tracking files. |
+| **edit_file_chunk** | Find-and-replace edits in existing code. |
+| **task_queue** | Track sub-tasks within a phase. Cleared when moving to the next phase. |
 
-Router_Brain uses no tools — it receives a structured input block and outputs a single JSON routing decision.
+
 
 ---
 
 ## Memory & Context System
 
-Each competition run gets an **isolated, git-versioned workspace**. Agents communicate not through shared memory but through files — the same way a real team uses shared docs and version control.
+Each competition gets its own isolated workspace with git version control. Instead of agents talking to each other directly, they leave notes in shared files — like a real team using Google Docs and Git.
 
-### The Memory Hierarchy
+### What's on Disk
 
 ```
 workspace/
-├── ml_rules.md          ← loaded into EVERY node's system prompt each loop
-│                           competition rules, I/O paths, medal targets, constraints
-├── ml_spec.md           ← cold storage blueprint (read only when cross-referenced)
-│                           architecture decisions, model choice, validation strategy
-├── ml_todo.md           ← active task checklist with spec cross-references
-│                           [x] completed  [ ] pending  → guides each node's work
-├── ml_progress.txt      ← shift handover scratchpad (overwritten each Sign-Off)
-│                           Current State · Blockers · Next Steps · Key Findings
+├── ml_rules.md          ← The rules of this specific competition
+│                           (reloaded each phase for fresh context)
+├── ml_spec.md           ← High-level architecture decisions
+│                           (read only when a task needs it)
+├── ml_todo.md           ← Checklist of what needs to happen
+│                           (marks tasks [x] done or [ ] pending)
+├── ml_progress.txt      ← Handoff note from the last phase
+│                           (what was done, what's blocking, what's next)
 ├── logs/
-│   ├── metrics.txt      ← all CV scores, per-fold results, hyperparameters logged here
-│   ├── bash_history.log ← every Python script run and its output (Python + errors only)
-│   └── all_messages.jsonl ← full LLM trace, one JSON line per tool round
-│                             → feeds post-run LLM-as-a-judge evaluation
-└── .git/                ← each node shift = one commit; `git log` is the audit trail
+│   ├── metrics.txt      ← Training scores, hyperparameters
+│   ├── bash_history.log ← Every script that ran + its output
+│   └── all_messages.jsonl ← Complete trace of everything (for post-run analysis)
+└── .git/                ← Full history; each phase = one commit
 ```
 
-### Why This Works
+### Why This Design Works
 
-- **Context resets are by design.** The Router wipes active message history on every phase transition. This prevents stale reasoning from bleeding across phases.
-- **Files replace memory.** Every agent starts with a Wake-Up protocol: `pwd && ls` → `read ml_progress.txt` → `read ml_todo.md` → `git log`. Within 3 tool calls, any node has full context.
-- **Cold storage prevents bloat.** `ml_spec.md` is only read when a task explicitly references it (`Ref: ml_spec.md → Section 2.1`). A long spec doesn't load on every iteration.
-- **Git = truth.** If an agent claims it completed a task but didn't commit, the next node sees uncommitted files in `git status` and knows not to trust the claim.
+- **No context bloat.** The system forgets old messages at the end of each phase, but reads fresh files to re-orient. No stale reasoning carries over.
+- **Fast handoffs.** New agents start fast: `pwd && ls` → read progress → read todo → check git log. Full context in 3 steps.
+- **Trust the files.** If an agent says a task is done but didn't commit it, the next agent sees uncommitted changes and knows not to trust the claim.
+- **Lazy loading.** The long spec only gets read when a task says "see ml_spec.md section X." Keeps prompt size down.
 
 ---
 
@@ -165,13 +165,15 @@ mle_agent/
 
 ## Design Decisions
 
-### Why multi-agent over single-shot / tree-search?
+### Why specialists instead of one big agent?
 
-Tree-search approaches win by sampling many independent solutions and keeping the best. This works well on simple problems where the full solution fits in one script. It breaks down on complex problems requiring multi-stage pipelines — a specialist agent can build 300 lines of well-tested preprocessing code that a single-script generator would rush. Our approach trades sampling breadth for reasoning depth: each specialist builds on the prior's artifacts, with the option to rewind rather than restart entirely.
+A single agent that tries to do everything either takes too long (trying every angle) or cuts corners (rushing to solutions). Our design: each person does their job well. The Architect spends time on a solid design. The Data Engineer spends time building trustworthy features. The Model Engineer focuses on training. The Evaluator does a final check. Each one can apply deep expertise without getting pulled in five directions. And if something goes wrong, you can send work back to the right person instead of restarting from scratch.
 
-### Why file-based memory over in-context state?
+### Why write to disk instead of keeping everything in memory?
 
-LangGraph state is wiped by the Router on each phase transition — intentionally. Keeping 50 tool rounds of model training conversation in context when the Evaluator just needs to check a CSV format is wasteful and noisy. Files are the shared medium: `ml_progress.txt` is a 10-line handover note, not a transcript. `ml_todo.md` tells the next agent exactly what's done. `git log` is an immutable audit trail. Any agent can re-orient from scratch in 3 tool calls.
+Two reasons. First, the system needs to forget old conversations between phases — too much noise. Second, the next agent needs to pick up fast. A 10-line handoff note beats reading 100 messages. Plus git log gives you the full audit trail: who did what, when, and if they committed it.
+
+One more thing: agents can be swapped in and out (different models, different strategies) because they all follow the same file protocol. The code is in `/src/`, the data is in `/data/`, the status is in `ml_progress.txt`. As long as you stick to that contract, you can change the agents.
 
 
 
