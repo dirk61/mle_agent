@@ -42,9 +42,12 @@ def run_bash_with_truncation(
             "Use 'uv run python script.py' instead.]"
         )
 
-    # Strip VIRTUAL_ENV so workspace's own uv/venv isn't confused by the
-    # parent server process's venv.
-    env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+    # Strip venv/conda vars so workspace's own uv/venv isn't confused by the
+    # parent server process's environment.
+    env = {
+        k: v for k, v in os.environ.items()
+        if k not in ("VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV")
+    }
 
     try:
         result = subprocess.run(

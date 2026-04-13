@@ -376,13 +376,19 @@ def _bootstrap_workspace(staging_path: str) -> str:
         cwd=workspace_dir, capture_output=True, check=False,
     )
 
-    # uv init (creates pyproject.toml + .venv)
+    # uv init with pinned Python — avoids picking up conda/system interpreters.
+    # Strip VIRTUAL_ENV and CONDA_PREFIX so uv uses its own managed Python.
+    clean_env = {
+        k: v for k, v in os.environ.items()
+        if k not in ("VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV")
+    }
     subprocess.run(
-        ["uv", "init"],
+        ["uv", "init", "--python", "3.13"],
         cwd=workspace_dir,
         capture_output=True,
         text=True,
         check=False,
+        env=clean_env,
     )
 
     # Copy dataset from staging path if available.
