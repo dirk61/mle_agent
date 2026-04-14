@@ -5,15 +5,21 @@ The core design challenge mirrors how real [MLE] teams stay aligned across long 
 
 Cost-performance balance is a first-class concern: hard iteration caps and prompted ML instincts actively discourage over-optimizing on validation — compute is spent where it generalizes, not where it overfits. A post-run LLM-as-a-judge evaluation is also implemented to enable systematic improvement across competition runs. 
 
-We evaluated across a diverse set of competitions spanning differnt categories and difficulties, showing competitive scores and validating the robustness of this agent design.
+We evaluated across a diverse set of competitions spanning different categories and difficulties, showing competitive scores and validating the robustness of this agent design.
 
 
 
 ---
 
-## Results
+## 🏆 Leaderboard Update: mle-bench on AgentBeats
+Date: April 14, 2026 | Status: Benchmarking Ongoing 🟢
+We are excited to share that our agent is currently dominating the **AgentX-AgentBeats Competition**. This competition is organized by [Berkeley RDI](https://rdi.berkeley.edu/) and utilizes OpenAI's [mle-bench](https://github.com/openai/mle-bench)—a benchmark for evaluating AI agents' performance at machine learning engineering, curated from 75 Kaggle competitions.
 
-mle_bench leaderboard https://agentbeats.dev/agentbeater/mle-bench
+As of We are now ranking #1🥇 on 4 leaderboards out of 6:
+* Spaceship Titanic
+* Denoising Dirty Documents
+* Aerial Cactus Identification
+* Jigsaw Toxic Comment Classification 
 
 | Competition | Category | Score | Gold | Medal |
 |---|---|---|---|---|
@@ -24,7 +30,7 @@ mle_bench leaderboard https://agentbeats.dev/agentbeater/mle-bench
 | jigsaw-toxic-comment-classification-challenge | Text Classification | 0.981 | 0.987 | Above median |
 
 
-Benchmarking **STILL ONGOING** on ML competitions across categories.
+Benchmarking **STILL ONGOING**.
 
 ---
 
