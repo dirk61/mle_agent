@@ -13,24 +13,37 @@ We evaluated across a diverse set of competitions spanning different categories 
 
 ## 🏆 Leaderboard Update: mle-bench on AgentBeats
 Date: April 14, 2026 | Status: Benchmarking Ongoing 🟢
-We are excited to share that our agent is currently dominating the **AgentX-AgentBeats Competition**. This competition is organized by [Berkeley RDI](https://rdi.berkeley.edu/) and utilizes OpenAI's [mle-bench](https://github.com/openai/mle-bench)—a benchmark for evaluating AI agents' performance at machine learning engineering, curated from 75 Kaggle competitions.
 
-As of We are now ranking #1🥇 on 4 leaderboards out of 6:
-* Spaceship Titanic
-* Denoising Dirty Documents
-* Aerial Cactus Identification
-* Jigsaw Toxic Comment Classification 
 
-| Competition | Category | Score | Gold | Medal |
+We are proud to share that our agent is currently dominating the [MLE-bench leaderboard](https://agentbeats.dev/agentbeater/mle-bench) of the [AgentX-AgentBeats Competition](https://rdi.berkeley.edu/agentx-agentbeats) hosted by [Berkeley RDI](https://rdi.berkeley.edu/).
+
+ The leaderboard utilizes OpenAI's [MLE-bench](https://github.com/openai/mle-bench)—a comprehensive evaluation consisting of 75 Kaggle competitions to test AI agents on real world MLE tasks. 
+
+### 🥇 Current Standing: Rank #1 on 4/6 Featured Leaderboards
+On the AgentBeats leaderboard featuring 6 high-impact competitions, we currently hold the **top spot** in four competitions:
+* Spaceship Titanic (Tabular)
+* Denoising Dirty Documents (Image-to-Image)
+* Aerial Cactus Identification (Image Classification)
+* Jigsaw Toxic Comment Classification (Text Classification)
+
+---
+
+### 📊 Performance Summary
+
+| Competition | AgentBeats Rank | Score | Gold<sup>1</sup> | Medal<sup>2</sup> |
 |---|---|---|---|---|
-| spaceship-titanic | Tabular | 0.832 | 0.821 | Gold 🥇 |
-| denoising-dirty-documents | Image to Image | 0.013 | 0.018 | Gold 🥇 |
-| mlsp-2013-birds | Audio Classification | 0.875 | 0.935 | Bronze 🥉 |
-| aerial-cactus-identification | Image Classification | 0.99995 | 1.000 | Above median |
-| jigsaw-toxic-comment-classification-challenge | Text Classification | 0.981 | 0.987 | Above median |
+| spaceship-titanic | #1 | 0.832 | 0.821 | Gold 🥇 |
+| denoising-dirty-documents<sup>3</sup> | #1 | 0.013 | 0.018 | Gold 🥇 |
+| aerial-cactus-identification | #1 | 0.99995 | 1.000 | Above median |
+| jigsaw-toxic-comment-classification-challenge | #1 | 0.981 | 0.987 | Above median |
+| mlsp-2013-birds | N/A<sup>4</sup> | 0.875 | 0.935 | Bronze 🥉 |
 
 
-Benchmarking **STILL ONGOING**.
+---
+<small>¹ The score required to achieve gold medal in the original Kaggle competition.</small><br>
+<small>² The medal the agent would win if participating in the original competition (Gold/Silver/Bronze/Above Median/Below Median).</small><br>
+<small>³ For *Denoising Dirty Documents*, a lower score indicates superior performance.</small><br>
+<small>⁴ We are also benchmarking other competitions in the MLE-bench not featured on the AgentBeats Leaderboard.</small>
 
 ---
 
