@@ -1,12 +1,31 @@
-# MLE Agent
-This Agent approaches each ML problem EXACTLY the way a real [MLE] (team) would: an Architect reads the problem and designs the pipeline, a Data Engineer builds the features, a Model Engineer trains and iterates, and an Evaluator does sanity checks on the final submission. Each specialist is equipped with sandboxed tools and carries domain-specific ML instincts without assuming fixed solutions — the pipeline adapts to the problem. Above all, a manager (router) coordinates — deciding who's next to work, assigning time and cost budget (Opus vs Sonnet vs Haiku), and pushing back to prior stages if the team is on a wrong route (triggering rewinds). All coordinated through a LangGraph cyclic graph that enables dynamic phase transitions.
+# MLE-Squad: A High-Fidelity Autonomous ML Engineering Team
+<!--This Agent approaches each ML problem EXACTLY the way a real [MLE] (team) would: an Architect reads the problem and designs the pipeline, a Data Engineer builds the features, a Model Engineer trains and iterates, and an Evaluator does sanity checks on the final submission. Each specialist is equipped with sandboxed tools and carries domain-specific ML instincts without assuming fixed solutions — the pipeline adapts to the problem. Above all, a manager (router) coordinates — deciding who's next to work, assigning time and cost budget (Opus vs Sonnet vs Haiku), and pushing back to prior stages if the team is on a wrong route (triggering rewinds). All coordinated through a LangGraph cyclic graph that enables dynamic phase transitions.
 
 The core design challenge mirrors how real [MLE] teams stay aligned across long projects: every agent writes its work to disk — cross-referenced architectural blueprints, task checklists, progress handovers, execution logs — in a git-versioned workspace any agent can audit on re-entry. When the context window compacts between phases, agents re-orient from persistent memory hierarchy rather than losing context. This makes the system robust on complex, multi-phase problems that need long runs. 
 
-Cost-performance balance is a first-class concern: hard iteration caps and prompted ML instincts actively discourage over-optimizing on validation — compute is spent where it generalizes, not where it overfits. A post-run LLM-as-a-judge evaluation is also implemented to enable systematic improvement across competition runs. 
+Cost-performance balance is a first-class concern: hard iteration caps and prompted ML instincts actively discourage over-optimizing on validation — compute is spent where it generalizes, not where it overfits. A post-run LLM-as-a-judge evaluation is also implemented to enable systematic improvement across competition runs.
 
-We evaluated across a diverse set of competitions spanning different categories and difficulties, showing competitive scores and validating the robustness of this agent design.
+We evaluated across a diverse set of competitions spanning different categories and difficulties, showing competitive scores and validating the robustness of this agent design.-->
 
+<!--### A multi-agent MLE team that thinks in Git commits and persists via disk.
+
+**MLE Agent** is an autonomous system that solves machine learning problems by simulating a high-functioning *MLE team*: 
+* **Role-Based Specialization:**: Instead of a single "do-it-all" prompt, the system utilizes a **cyclic graph** to coordinate four specialized agents—**Architect, Data Engineer, Model Engineer, and Evaluator**—governed by a strategic **Router (Manager)**.
+* **Hierarchical Memory for Team Collaboration:** Think of a typical engineering team's collab workflow: Slack for updates, Git for version control, and shared docs for project specs. Acting the same way, our specialist agents ONLY pass compact handoff messages to their successors, commit every major code change to a Git-versioned workspace, and collectively maintain local files for architectural blueprints, data distribution summaries, and prioritized TODO lists. By offloading project state to disk, the system prevents the "context window collapse" typical of long-running tasks. This allows agents to instantly re-orient by auditing the file system upon entry, ensuring that critical engineering insights are never lost to token limitations.-->
+
+> **MLE-Squad** is an autonomous system that solves machine learning problems by simulating a high-functioning engineering team. We abandoned the fragile "do-it-all" mega prompt in favor of a distributed architecture that maps directly to real-world workflows:
+
+| 👥 The Human MLE Team | | 🤖 The MLE-Squad Architecture |
+| :--- | :---: | :--- |
+|| 🏗️ <br>**Structure**  | |
+| **Tech Leads & Specialists**<br>A team lead delegates work. An Architect designs the pipeline, a Data Engineer preps data, an MLE trains, and peers review. | ➡️ | **Role-Based Specialization**<br>A `Router` agent coordinates four specialists (`Architect`, `Data Engineer`, `Model Engineer`, `Evaluator`). |
+| |🔄 <br> **Workflow**  | |
+| **Focused Handoffs**<br>Engineers pass work using clear status updates ("Here is the data shape"), rather than sharing their entire trial-and-error log. | ➡️ | **Compact Context Passing**<br>Agents pass only explicit summary strings to the next node, preventing noise from crowding the active context window. |
+| **Design Docs & Progress Trackers**<br>The team stays aligned on the big picture by keeping shared design specifications and active to-do lists up to date. | ➡️ | **Shared Project Memory**<br>Agents collectively maintain local files (`ml_spec.md`, `ml_todo.md`). They read these to instantly re-orient on new tasks. |
+| **Git Version Control**<br>Code is systematically versioned. If an experiment fails, the team reviews the commit history and reverts safely. | ➡️ | **Git-Driven Workspace**<br>Agents rely on clean Git control. Offloading history to commits fundamentally prevents **`Context Window Collapse`**. |
+|| 🛑 <br> **&nbsp;Reality&#8209;Checks**  | |
+| **Reviews & Course Corrections**<br>Progress isn't linear. A lead might ask an engineer to redo a task, or tell the Architect to scrap the design and pivot. | ➡️ | **Dynamic Routing & Rewinds**<br>The `Router` evaluates progress and can loop an agent to try again, step back a phase, or trigger a complete rewind. |
+| **Resource Limits & Cost Balancing**<br>Teams balance performance against time and compute costs, avoiding perfectionism. Engineers operate within boundaries. | ➡️ | **Sandboxed Constraints**<br>Agents balance token costs and time via strict tool timeouts and iteration caps, explicitly avoiding endless tuning loops. |
 
 
 ---
@@ -15,12 +34,12 @@ We evaluated across a diverse set of competitions spanning different categories 
 Date: April 14, 2026 | Status: Benchmarking Ongoing 🟢
 
 
-We are proud to share that our agent is currently dominating the [MLE-bench leaderboard](https://agentbeats.dev/agentbeater/mle-bench) of the [AgentX-AgentBeats Competition](https://rdi.berkeley.edu/agentx-agentbeats) hosted by [Berkeley RDI](https://rdi.berkeley.edu/).
+MLE-Squad currently leads the [MLE-bench leaderboard](https://agentbeats.dev/agentbeater/mle-bench) of the [AgentX-AgentBeats Competition](https://rdi.berkeley.edu/agentx-agentbeats) hosted by [Berkeley RDI](https://rdi.berkeley.edu/).
 
  The leaderboard utilizes OpenAI's [MLE-bench](https://github.com/openai/mle-bench)—a comprehensive evaluation consisting of 75 Kaggle competitions to test AI agents on real world MLE tasks. 
 
 ### 🥇 Current Standing: Rank #1 on 4/6 Featured Leaderboards
-On the AgentBeats leaderboard featuring 6 high-impact competitions, we currently hold the **top spot** in four competitions:
+On the AgentBeats leaderboard featuring 6 competitions, we currently hold the **top spot** in 4 of the them:
 * Spaceship Titanic (Tabular)
 * Denoising Dirty Documents (Image-to-Image)
 * Aerial Cactus Identification (Image Classification)
@@ -32,11 +51,11 @@ On the AgentBeats leaderboard featuring 6 high-impact competitions, we currently
 
 | Competition | AgentBeats Rank | Score | Gold<sup>1</sup> | Medal<sup>2</sup> |
 |---|---|---|---|---|
-| spaceship-titanic | #1 | 0.832 | 0.821 | Gold 🥇 |
-| denoising-dirty-documents<sup>3</sup> | #1 | 0.013 | 0.018 | Gold 🥇 |
-| aerial-cactus-identification | #1 | 0.99995 | 1.000 | Above median |
-| jigsaw-toxic-comment-classification-challenge | #1 | 0.981 | 0.987 | Above median |
-| mlsp-2013-birds | N/A<sup>4</sup> | 0.875 | 0.935 | Bronze 🥉 |
+| Spaceship Titanic | #1 | 0.832 | 0.821 | Gold 🥇 |
+| Denoising Dirty Documents<sup>3</sup> | #1 | 0.013 | 0.018 | Gold 🥇 |
+| Aerial Cactus Identification | #1 | 0.99995 | 1.000 | Above median |
+| Jigsaw Toxic Comment Classification | #1 | 0.981 | 0.987 | Above median |
+| MLSP 2013 Bird Classification | N/A<sup>4</sup> | 0.875 | 0.935 | Bronze 🥉 |
 
 
 ---
@@ -44,6 +63,13 @@ On the AgentBeats leaderboard featuring 6 high-impact competitions, we currently
 <small>² The medal the agent would win if participating in the original competition (Gold/Silver/Bronze/Above Median/Below Median).</small><br>
 <small>³ For *Denoising Dirty Documents*, a lower score indicates superior performance.</small><br>
 <small>⁴ We are also benchmarking other competitions in the MLE-bench not featured on the AgentBeats Leaderboard.</small>
+
+---
+
+### 🔍 Next Steps: Optimization & Scaling
+As we continue to iterate, our roadmap focuses on two primary objectives:
+1. Refining the agent's performance, robustness, and token-efficiency, using a LLM-as-a-judge framework for post-run evaluation. This allows us to identify and optimize towards failure modes, edge cases and bottlenecks.
+2. Expanding beyond the 6 featured leaderboards to evaluate against the OpenAI [Lite Evaluation](https://github.com/openai/mle-bench#lite-evaluation) subset of the MLE-bench. This will provide a more comprehensive view of the agent's ability to generalize across the broader MLE-bench landscape.
 
 ---
 
@@ -148,7 +174,7 @@ workspace/
 ## Repository Structure
 
 ```
-mle_agent/
+mle_squad/
 ├── src/
 │   ├── agent.py              # Entry point: unpack tar, init graph, submit artifact
 │   ├── graph.py              # LangGraph StateGraph: nodes, edges, conditional routing
@@ -185,11 +211,11 @@ mle_agent/
 
 ## Design Decisions
 
-### Why specialists instead of one big agent?
+### 🧩 Why specialists instead of one big agent?
 
 A single agent that tries to do everything either takes too long (trying every angle) or cuts corners (rushing to solutions). Our design: each person does their job well. The Architect spends time on a solid design. The Data Engineer spends time building trustworthy features. The Model Engineer focuses on training. The Evaluator does a final check. Each one can apply deep expertise without getting pulled in five directions. And if something goes wrong, you can send work back to the right person instead of restarting from scratch.
 
-### Why write to disk instead of keeping everything in memory?
+### 🧩 Why write to disk instead of keeping everything in memory?
 
 Two reasons. First, the system needs to forget old conversations between phases — too much noise. Second, the next agent needs to pick up fast. A 10-line handoff note beats reading 100 messages. Plus git log gives you the full audit trail: who did what, when, and if they committed it.
 
