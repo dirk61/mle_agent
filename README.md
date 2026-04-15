@@ -15,6 +15,58 @@ We evaluated across a diverse set of competitions spanning different categories 
 
 > **MLE-Squad** is an autonomous system that solves machine learning problems by simulating a high-functioning engineering team. We abandoned the fragile "do-it-all" mega prompt in favor of a distributed architecture that maps directly to real-world workflows:
 
+<table>
+  <thead>
+    <tr>
+      <th width="45%">👥 The Human MLE Team</th>
+      <th width="10%"></th>
+      <th width="45%">🤖 The MLE-Squad Architecture</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background-color: #f6f8fa;">
+      <td colspan="3" align="center">🏗️ <b>STRUCTURE</b></td>
+    </tr>
+    <tr>
+      <td><b>Tech Leads & Specialists</b><br>A team lead delegates work. An Architect designs the pipeline, a Data Engineer preps data, an MLE trains, and peers review.</td>
+      <td align="center">➡️</td>
+      <td><b>Role-Based Specialization</b><br>A <code>Router</code> agent coordinates four specialists (<code>Architect</code>, <code>Data Engineer</code>, <code>Model Engineer</code>, <code>Evaluator</code>).</td>
+    </tr>
+    <tr style="background-color: #f6f8fa;">
+      <td colspan="3" align="center">🔄 <b>WORKFLOW</b></td>
+    </tr>
+    <tr>
+      <td><b>Focused Handoffs</b><br>Engineers pass work using clear status updates ("Here is the data shape"), rather than sharing their entire trial-and-error log.</td>
+      <td align="center">➡️</td>
+      <td><b>Compact Context Passing</b><br>Agents pass only explicit summary strings to the next node, preventing noise from crowding the active context window.</td>
+    </tr>
+    <tr>
+      <td><b>Design Docs & Progress Trackers</b><br>The team stays aligned on the big picture by keeping shared design specifications and active to-do lists up to date.</td>
+      <td align="center">➡️</td>
+      <td><b>Shared Project Memory</b><br>Agents collectively maintain local files (<code>ml_spec.md</code>, <code>ml_todo.md</code>). They read these to instantly re-orient on new tasks.</td>
+    </tr>
+    <tr>
+      <td><b>Git Version Control</b><br>Code is systematically versioned. If an experiment fails, the team reviews the commit history and reverts safely.</td>
+      <td align="center">➡️</td>
+      <td><b>Git-Driven Workspace</b><br>Agents rely on clean Git control. Offloading history to commits fundamentally prevents <b><code>Context Window Collapse</code></b>.</td>
+    </tr>
+    <tr style="background-color: #f6f8fa;">
+      <td colspan="3" align="center">🛑 <b>REALITY-CHECKS</b></td>
+    </tr>
+    <tr>
+      <td><b>Reviews & Course Corrections</b><br>Progress isn't linear. A lead might ask an engineer to redo a task, or tell the Architect to scrap the design and pivot.</td>
+      <td align="center">➡️</td>
+      <td><b>Dynamic Routing & Rewinds</b><br>The <code>Router</code> evaluates progress and can loop an agent to try again, step back a phase, or trigger a complete rewind.</td>
+    </tr>
+    <tr>
+      <td><b>Resource Limits & Cost Balancing</b><br>Teams balance performance against time and compute costs, avoiding perfectionism. Engineers operate within boundaries.</td>
+      <td align="center">➡️</td>
+      <td><b>Sandboxed Constraints</b><br>Agents balance token costs and time via strict tool timeouts and iteration caps, explicitly avoiding endless tuning loops.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!--
 | 👥 The Human MLE Team | | 🤖 The MLE-Squad Architecture |
 | :--- | :---: | :--- |
 || 🏗️ <br>**Structure**  | |
@@ -26,7 +78,7 @@ We evaluated across a diverse set of competitions spanning different categories 
 || 🛑 <br> **&nbsp;Reality&#8209;Checks**  | |
 | **Reviews & Course Corrections**<br>Progress isn't linear. A lead might ask an engineer to redo a task, or tell the Architect to scrap the design and pivot. | ➡️ | **Dynamic Routing & Rewinds**<br>The `Router` evaluates progress and can loop an agent to try again, step back a phase, or trigger a complete rewind. |
 | **Resource Limits & Cost Balancing**<br>Teams balance performance against time and compute costs, avoiding perfectionism. Engineers operate within boundaries. | ➡️ | **Sandboxed Constraints**<br>Agents balance token costs and time via strict tool timeouts and iteration caps, explicitly avoiding endless tuning loops. |
-
+-->
 
 ---
 
@@ -117,11 +169,11 @@ As we continue to iterate, our roadmap focuses on two primary objectives:
 
 | Node | Model | Responsibility |
 |---|---|---|
-| **System_Architect** | Opus | Reads competition description, runs data discovery, writes blueprint (`ml_rules.md`, `ml_spec.md`, `ml_todo.md`) |
-| **Router_Brain** | Haiku | Reads progress, decides next node, assigns model tier, triggers rewinds on typed blockers |
-| **Data_Engineer** | Sonnet | Feature engineering, preprocessing pipeline, produces validated arrays |
-| **Model_Engineer** | Sonnet | Model training, CV-guided iteration, hyperparameter tuning, generates `submission.csv` |
-| **Evaluator** | Haiku | Submission format validation, metric sanity check, gates final submit |
+| `System_Architect` | Opus | Reads competition description, runs data discovery, writes blueprint (`ml_rules.md`, `ml_spec.md`, `ml_todo.md`) |
+| `Router_Brain` | Haiku | Reads progress, decides next node, assigns model tier, triggers rewinds on typed blockers |
+| `Data_Engineer` | Sonnet | Exploratory data analysis, feature engineering, preprocessing pipeline, produces validated arrays |
+| `Model_Engineer` | Sonnet | Model Selection, model training, hyperparameter tuning, generates `submission.csv` |
+| `Evaluator` | Haiku | Submission format validation, metric sanity check, gates final submit |
 
 ### Toolset
 
@@ -129,11 +181,11 @@ All agents (except Router) can run bash commands, read/write files, and edit cod
 
 | Tool | What it does |
 |---|---|
-| **bash** | Run commands: train scripts, install packages, check data shapes. Output limited to 8K chars. LLM-defined timeout window. |
-| **read_file** | Read code, logs, memory files. Not used on raw data files. |
-| **write_file** | Create new Python scripts, configs, tracking files. |
-| **edit_file_chunk** | Find-and-replace edits in existing code. |
-| **task_queue** | Track sub-tasks within a phase. Cleared when moving to the next phase. |
+| `*bash` | Run commands: train scripts, install packages, check data shapes. Output limited to 8K chars. LLM-defined timeout window. |
+| `read_file` | Read code, logs, memory files. Not used on raw data files. |
+| `write_file` | Create new Python scripts, configs, tracking files. |
+| `edit_file_chunk` | Find-and-replace edits in existing code. |
+| `task_queue` | Track sub-tasks within a phase. Cleared when moving to the next phase. |
 
 
 
@@ -165,7 +217,7 @@ workspace/
 ### Why This Design Works
 
 - **No context bloat.** The system forgets old messages at the end of each phase, but reads fresh files to re-orient. No stale reasoning carries over.
-- **Fast handoffs.** New agents start fast: `pwd && ls` → read progress → read todo → check git log. Full context in 3 steps.
+- **Fast handoffs.** New agents start fast: `pwd && ls` → read progress → read todo → check `git log`. Full context in 3 steps.
 - **Trust the files.** If an agent says a task is done but didn't commit it, the next agent sees uncommitted changes and knows not to trust the claim.
 - **Lazy loading.** The long spec only gets read when a task says "see ml_spec.md section X." Keeps prompt size down.
 
