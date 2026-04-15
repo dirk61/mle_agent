@@ -23,64 +23,51 @@ We evaluated across a diverse set of competitions spanning different categories 
       <th width="45%">🤖 The MLE-Squad Architecture</th>
     </tr>
   </thead>
-</table>
-
-<table width="100%">
-  <tr style="background-color: #f6f8fa;">
-    <td align="center">🏗️ <b>STRUCTURE</b></td>
-  </tr>
-</table>
-<table width="100%">
   <tbody>
     <tr>
-      <td width="45%"><b>Tech Leads & Specialists</b><br>A team lead delegates work. An Architect designs the pipeline, a Data Engineer preps data, an MLE trains, and peers review.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Role-Based Specialization</b><br>A <code>Router</code> agent coordinates four specialists (<code>Architect</code>, <code>Data Engineer</code>, <code>Model Engineer</code>, <code>Evaluator</code>).</td>
-    </tr>
-  </tbody>
-</table>
-
-<table width="100%">
-  <tr style="background-color: #f6f8fa;">
-    <td align="center">🔄 <b>WORKFLOW & TEAM MEMORY</b></td>
-  </tr>
-</table>
-<table width="100%">
-  <tbody>
-    <tr>
-      <td width="45%"><b>Focused Handoffs</b><br>Engineers pass work using clear status updates ("Here is the data shape"), rather than sharing their entire trial-and-error log.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Compact Context Passing</b><br>Agents pass only explicit summary strings to the next node, preventing noise from crowding the active context window.</td>
+      <td colspan="3" align="center" style="background-color: #f6f8fa;">
+        <br>🏗️ <b>STRUCTURE</b><br><br>
+      </td>
     </tr>
     <tr>
-      <td width="45%"><b>Design Docs & Progress Trackers</b><br>The team stays aligned on the big picture by keeping shared design specifications and active to-do lists up to date.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Shared Project Memory</b><br>Agents collectively maintain local files (<code>ml_spec.md</code>, <code>ml_todo.md</code>). They read these to instantly re-orient on new tasks.</td>
+      <td><b>Tech Leads & Specialists</b><br>A team lead delegates work. An Architect designs the pipeline, a Data Engineer preps data, an MLE trains, and peers review.</td>
+      <td align="center">➡️</td>
+      <td><b>Role-Based Specialization</b><br>A <code>Router</code> agent coordinates four specialists (<code>Architect</code>, <code>Data Engineer</code>, <code>Model Engineer</code>, <code>Evaluator</code>).</td>
     </tr>
     <tr>
-      <td width="45%"><b>Git Version Control</b><br>Code is systematically versioned. If an experiment fails, the team reviews the commit history and reverts safely.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Git-Driven Workspace</b><br>Agents rely on clean Git control. Offloading history to commits fundamentally prevents <b><code>Context Window Collapse</code></b>.</td>
-    </tr>
-  </tbody>
-</table>
-
-<table width="100%">
-  <tr style="background-color: #f6f8fa;">
-    <td align="center">🛑 <b>REALITY-CHECKS & GUARDRAILS</b></td>
-  </tr>
-</table>
-<table width="100%">
-  <tbody>
-    <tr>
-      <td width="45%"><b>Reviews & Course Corrections</b><br>Progress isn't linear. A lead might ask an engineer to redo a task, or tell the Architect to scrap the design and pivot.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Dynamic Routing & Rewinds</b><br>The <code>Router</code> evaluates progress and can loop an agent to try again, step back a phase, or trigger a complete rewind.</td>
+      <td colspan="3" align="center" style="background-color: #f6f8fa;">
+        <br>🔄 <b>WORKFLOW & TEAM MEMORY</b><br><br>
+      </td>
     </tr>
     <tr>
-      <td width="45%"><b>Resource Limits & Cost Balancing</b><br>Teams balance performance against time and compute costs, avoiding perfectionism. Engineers operate within boundaries.</td>
-      <td width="10%" align="center">➡️</td>
-      <td width="45%"><b>Sandboxed Constraints</b><br>Agents balance token costs and time via strict tool timeouts and iteration caps, explicitly avoiding endless tuning loops.</td>
+      <td><b>Focused Handoffs</b><br>Engineers pass work using clear status updates ("Here is the data shape"), rather than sharing their entire trial-and-error log.</td>
+      <td align="center">➡️</td>
+      <td><b>Compact Context Passing</b><br>Agents pass only explicit summary strings to the next node, preventing noise from crowding the active context window.</td>
+    </tr>
+    <tr>
+      <td><b>Design Docs & Progress Trackers</b><br>The team stays aligned on the big picture by keeping shared design specifications and active to-do lists up to date.</td>
+      <td align="center">➡️</td>
+      <td><b>Shared Project Memory</b><br>Agents collectively maintain local files (<code>ml_spec.md</code>, <code>ml_todo.md</code>). They read these to instantly re-orient on new tasks.</td>
+    </tr>
+    <tr>
+      <td><b>Git Version Control</b><br>Code is systematically versioned. If an experiment fails, the team reviews the commit history and reverts safely.</td>
+      <td align="center">➡️</td>
+      <td><b>Git-Driven Workspace</b><br>Agents rely on clean Git control. Offloading history to commits fundamentally prevents <b><code>Context Window Collapse</code></b>.</td>
+    </tr>
+    <tr>
+      <td colspan="3" align="center" style="background-color: #f6f8fa;">
+        <br>🛑 <b>REALITY-CHECKS & GUARDRAILS</b><br><br>
+      </td>
+    </tr>
+    <tr>
+      <td><b>Reviews & Course Corrections</b><br>Progress isn't linear. A lead might ask an engineer to redo a task, or tell the Architect to scrap the design and pivot.</td>
+      <td align="center">➡️</td>
+      <td><b>Dynamic Routing & Rewinds</b><br>The <code>Router</code> evaluates progress and can loop an agent to try again, step back a phase, or trigger a complete rewind.</td>
+    </tr>
+    <tr>
+      <td><b>Resource Limits & Cost Balancing</b><br>Teams balance performance against time and compute costs, avoiding perfectionism. Engineers operate within boundaries.</td>
+      <td align="center">➡️</td>
+      <td><b>Sandboxed Constraints</b><br>Agents balance token costs and time via strict tool timeouts and iteration caps, explicitly avoiding endless tuning loops.</td>
     </tr>
   </tbody>
 </table>
